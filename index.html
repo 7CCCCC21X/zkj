@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh" data-theme="">
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
   <title>ZKJ-KOGE 流动性池子实时数据</title>
@@ -10,25 +10,17 @@
       --c-text:#222;--c-sub:#555;--c-card:#fff;--c-skeleton:#e5e7eb;
       --grad-total:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
     }
-    [data-theme="dark"]{
-      --c-bg:#1a1d24;--c-text:#e5e7eb;--c-sub:#9ca3af;--c-card:#272b35;
-      --c-skeleton:#33373f;--grad-total:linear-gradient(135deg,#1e3c72,#2a5298);
-    }
     *{box-sizing:border-box;margin:0;padding:0}
     body{
       font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
       background:var(--c-bg);color:var(--c-text);padding:34px;
-      max-width:780px;margin:auto;text-align:center;transition:.3s background,.3s color;
+      max-width:780px;margin:auto;text-align:center;
     }
-
-    /* 顶部 */
     .topbar{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px}
     .title{font-size:26px;font-weight:700;color:var(--c-primary);display:flex;align-items:center;gap:6px}
     .spin{animation:rotate 1.1s linear infinite}@keyframes rotate{100%{transform:rotate(360deg)}}
     .switch{display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer}
     .switch input{accent-color:var(--c-primary);cursor:pointer}
-
-    /* 卡片行 */
     .row{
       display:flex;align-items:center;justify-content:space-between;
       background:var(--c-card);padding:16px 20px;margin-bottom:14px;border-radius:10px;
@@ -36,155 +28,121 @@
       animation:fadeInUp .4s ease-out;
     }
     .row::before{content:'';position:absolute;left:0;top:0;height:100%;width:4px;background:var(--stripe,#ccc)}
-    .token-icon{
-      width:34px;height:34px;border-radius:50%;margin-right:12px;flex-shrink:0;
-      box-shadow:inset 0 0 4px rgba(0,0,0,.35);object-fit:cover;display:block;
-    }
-    .icon-fallback{
-      width:34px;height:34px;border-radius:50%;margin-right:12px;flex-shrink:0;
-      display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:16px;
-    }
+    .token-icon{width:34px;height:34px;border-radius:50%;margin-right:12px;object-fit:cover;display:block}
+    .icon-fallback{width:34px;height:34px;border-radius:50%;margin-right:12px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:16px}
     .label{display:flex;align-items:center;font-size:18px;font-weight:600}
     .value{text-align:right}
     .amount-label,.price-label{display:block;font-size:13px;font-weight:600;color:var(--c-sub);margin-bottom:2px}
     .value-num{font-size:18px;font-variant-numeric:tabular-nums}
     .value-price{font-size:14px;font-variant-numeric:tabular-nums;margin-top:4px}
-    .total{
-      font-size:28px;font-weight:700;margin:18px 0;
-      background:var(--grad-total);-webkit-background-clip:text;color:transparent;
-      text-shadow:0 0 8px rgba(0,0,0,.15);
-    }
+    .total{font-size:28px;font-weight:700;margin:18px 0;background:var(--grad-total);
+      -webkit-background-clip:text;color:transparent;text-shadow:0 0 8px rgba(0,0,0,.15)}
     .update-time{font-size:14px;color:var(--c-sub);margin-bottom:12px}
-
-    button,a.link-btn{
-      display:inline-block;padding:10px 22px;margin:10px;font-size:16px;
-      background:var(--c-primary);color:#fff;border:none;border-radius:8px;
-      text-decoration:none;cursor:pointer;transition:.2s background;
-    }
+    button,a.link-btn{display:inline-block;padding:10px 22px;margin:10px;font-size:16px;
+      background:var(--c-primary);color:#fff;border:none;border-radius:8px;text-decoration:none;cursor:pointer;transition:.2s background}
     button:hover,a.link-btn:hover{background:var(--c-primary-dark)}
-
-    /* Skeleton */
     .skeleton{background:var(--c-skeleton);border-radius:6px;animation:sFade 1.2s ease-in-out infinite}
     @keyframes sFade{0%{opacity:.9}50%{opacity:.4}100%{opacity:.9}}
     @keyframes fadeInUp{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
-
-    @media(max-width:520px){
-      body{padding:20px}
-      .row{flex-direction:column;align-items:flex-start}
-      .value{text-align:left;margin-top:6px}
-    }
+    @media(max-width:520px){body{padding:20px}.row{flex-direction:column;align-items:flex-start}.value{text-align:left;margin-top:6px}}
   </style>
 </head>
 <body>
-  <!-- 顶部栏 -->
   <div class="topbar">
     <div class="title">
       ZKJ-KOGE 流动性池子实时数据
       <svg id="spinner" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="48"/></svg>
     </div>
     <label class="switch"><input type="checkbox" id="autoCb" checked>自动刷新</label>
-    <label class="switch"><input type="checkbox" id="themeCb">深色</label>
   </div>
 
-  <!-- 池子余额链接 -->
   <a class="link-btn" href="https://debank.com/profile/0x099f84de4fb511e861ca8f635623eae409405873" target="_blank">📦 池子余额传送门</a>
 
   <div id="rows"></div>
   <div class="total" id="totalValue">💰</div>
   <div class="update-time" id="updateTime"></div>
-
   <button id="refreshBtn">🔄 刷新余额</button>
 
-  <!-- 依赖 -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7/dist/ethers.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css"/>
 
   <script>
   ;(async()=>{
-    /* === 配置 === */
     const CFG={
       ADDRESS:'0x099f84de4fb511e861ca8f635623eae409405873',
       TOKENS:[
-        {
-          symbol:'ZKJ',
-          address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',
-          logo:'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/0xc71B5f631354be6853efE9C3AB6b9590F8302e81/logo.png',
-          color:'#1e88ff',decimals:null
-        },
-        {
-          symbol:'KOGE',
-          address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',
-          logo:'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/0xe6DF05CE8c8301223373CF5B969AfCB1498C5528/logo.png',
-          color:'#ff9800',decimals:null
-        }
+        {symbol:'ZKJ',address:'0xc71b5f631354be6853efE9C3AB6b9590F8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null},
+        {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
       ],
       RPC:'https://bsc-dataseed.binance.org/',
       MULTICALL:'0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb',
-      TIMEOUT:8000,RETRY:1,INTERVAL:30000,PRICE_CACHE:30000
+      TIMEOUT:8000,RETRY:1,INTERVAL:60000,PRICE_CACHE:30000   // 1 分钟
     };
 
-    /* === DOM === */
-    const rowsBox=document.getElementById('rows');
-    const totalDom=document.getElementById('totalValue');
-    const timeDom=document.getElementById('updateTime');
-    const spinner=document.getElementById('spinner');
-    const autoCb=document.getElementById('autoCb');
-    const themeCb=document.getElementById('themeCb');
-    const refreshBtn=document.getElementById('refreshBtn');
+    const rowsBox=document.getElementById('rows'),
+          totalDom=document.getElementById('totalValue'),
+          timeDom=document.getElementById('updateTime'),
+          spinner=document.getElementById('spinner'),
+          autoCb=document.getElementById('autoCb'),
+          refreshBtn=document.getElementById('refreshBtn');
 
-    /* === 以太工具 === */
     const provider=new ethers.providers.JsonRpcProvider(CFG.RPC);
-    const ERC20_ABI=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
-    const MC_ABI=['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'];
-    const iface=new ethers.utils.Interface(ERC20_ABI);
-    const multicall=new ethers.Contract(CFG.MULTICALL,MC_ABI,provider);
+    const ERC20=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
+    const MC=['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'];
+    const iface=new ethers.utils.Interface(ERC20);
+    const multicall=new ethers.Contract(CFG.MULTICALL,MC,provider);
 
-    /* -------- 工具函数 -------- */
-    async function fetchJSON(u,timeout=CFG.TIMEOUT,retry=CFG.RETRY){
+    async function fetchJSON(u,to=CFG.TIMEOUT,retry=CFG.RETRY){
       for(let i=0;i<=retry;i++){
-        const ctrl=new AbortController();
-        const t=setTimeout(()=>ctrl.abort(),timeout);
-        try{
-          const res=await fetch(u,{signal:ctrl.signal});
-          clearTimeout(t);
-          if(!res.ok)throw new Error(res.statusText);
-          return res.json();
-        }catch(e){
-          if(i===retry)throw e;
-          await new Promise(r=>setTimeout(r,600));
-        }
+        const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),to);
+        try{const r=await fetch(u,{signal:ctrl.signal});clearTimeout(timer);if(!r.ok)throw new Error(r.statusText);return r.json();}
+        catch(e){if(i===retry)throw e;await new Promise(r=>setTimeout(r,600));}
       }
     }
-    /* 价格缓存 */
-    const getCached=a=>{
-      try{const {p,ts}=JSON.parse(localStorage.getItem('p_'+a)||'{}');
-        if(Date.now()-ts<CFG.PRICE_CACHE)return p}catch{}return null};
+    const getCached=a=>{try{const {p,ts}=JSON.parse(localStorage.getItem('p_'+a)||'{}');if(Date.now()-ts<CFG.PRICE_CACHE)return p}catch{}return null};
     const setCached=(a,p)=>localStorage.setItem('p_'+a,JSON.stringify({p,ts:Date.now()}));
 
     async function getPrice(addr){
-      const c=getCached(addr);if(c)return c;
-      const dex=async()=>{
-        const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${addr}`);
-        const pair=(j.pairs||[]).find(p=>['USDT','USDC'].includes(p.quoteToken.symbol)&&p.liquidity.usd>5000);
-        if(pair)return +pair.priceUsd;throw 0};
-      const gecko=async()=>{
-        const j=await fetchJSON(`https://api.geckoterminal.com/api/v2/simple/networks/bsc/token_price/${addr}`);
-        return +Object.values(j.data.attributes.token_prices)[0];};
-      const price=await dex().catch(gecko);
-      setCached(addr,price);return price;
-    }
-    async function ensureDecimals(t){
-      if(t.decimals!=null)return;
-      t.decimals=await new ethers.Contract(t.address,ERC20_ABI,provider).decimals().catch(()=>18);
-    }
-    async function getBalances(tokens,addr){
-      const calls=tokens.map(t=>[t.address,iface.encodeFunctionData('balanceOf',[addr])]);
-      const [,data]=await multicall.aggregate(calls);
-      return data.map(d=>ethers.BigNumber.from(d));
+      const c=getCached(addr);if(c) return c;
+      const lower=addr.toLowerCase();
+      const attempts=[
+        /* ① DexScreener /tokens */
+        async()=>{
+          const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${lower}`);
+          const p=(j.pairs||[]).find(x=>['USDT','USDC'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
+          if(p) return +p.priceUsd; throw 0;
+        },
+        /* ② DexScreener /search */
+        async()=>{
+          const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${lower}`);
+          const p=(j.pairs||[]).find(x=>['USDT','USDC'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
+          if(p) return +p.priceUsd; throw 0;
+        },
+        /* ③ GeckoTerminal */
+        async()=>{
+          const j=await fetchJSON(`https://api.geckoterminal.com/api/v2/simple/networks/bsc/token_price/${lower}`);
+          const v=+Object.values(j.data.attributes.token_prices)[0]; if(v) return v; throw 0;
+        },
+        /* ④ PancakeSwap Info */
+        async()=>{
+          const j=await fetchJSON(`https://api.pancakeswap.info/api/v2/tokens/${lower}`);
+          const v=+j.data?.price; if(v) return v; throw 0;
+        }
+      ];
+      for(const fn of attempts){
+        try{const p=await fn(); setCached(addr,p); return p;}catch{}
+      }
+      throw new Error('价格接口全部失效');
     }
 
-    /* -------- Skeleton -------- */
+    async function ensureDecimals(t){if(t.decimals!=null)return;
+      t.decimals=await new ethers.Contract(t.address,ERC20,provider).decimals().catch(()=>18);}
+    async function getBalances(tokens,addr){
+      const calls=tokens.map(t=>[t.address,iface.encodeFunctionData('balanceOf',[addr])]);
+      const [,d]=await multicall.aggregate(calls);return d.map(x=>ethers.BigNumber.from(x));
+    }
+
     function skeleton(){
       rowsBox.innerHTML='';
       CFG.TOKENS.forEach(t=>{
@@ -192,24 +150,21 @@
         div.innerHTML=`
           <div class="label">
             <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
-                 onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')" />
-            <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
-            ${t.symbol}
+                 onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')"/>
+            <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>${t.symbol}
           </div>
           <div style="flex:1;"></div>
           <div class="value">
             <span class="amount-label">数量</span>
             <div class="skeleton" style="width:130px;height:22px"></div>
-            <span class="price-label" style="margin-top:6px">价值</span>
+            <span class="price-label">价值</span>
             <div class="skeleton" style="width:110px;height:18px"></div>
-          </div>`;
-        rowsBox.appendChild(div);
+          </div>`;rowsBox.appendChild(div);
       });
       totalDom.innerHTML='<span class="skeleton" style="width:200px;height:28px;display:inline-block"></span>';
       timeDom.textContent='';
     }
 
-    /* -------- 主刷新 -------- */
     async function refresh(){
       skeleton();spinner.classList.add('spin');
       try{
@@ -220,15 +175,13 @@
         rowsBox.innerHTML='';let total=0;
         CFG.TOKENS.forEach((t,i)=>{
           const human=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
-          const price=prices[i];const usd=Math.round(human*price);total+=usd;
-
+          const price=prices[i],usd=Math.round(human*price);total+=usd;
           const row=document.createElement('div');row.className='row';row.style.setProperty('--stripe',t.color);
           row.innerHTML=`
             <div class="label">
               <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
-                   onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')" />
-              <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
-              ${t.symbol}
+                   onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')"/>
+              <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>${t.symbol}
             </div>
             <div style="flex:1;"></div>
             <div class="value">
@@ -236,10 +189,8 @@
               <span class="value-num">${human.toLocaleString(undefined,{maximumFractionDigits:6})}</span>
               <span class="price-label">价值</span>
               <span class="value-price">≈ $${usd.toLocaleString()} @ $${price.toFixed(4)}</span>
-            </div>`;
-          rowsBox.appendChild(row);
+            </div>`;rowsBox.appendChild(row);
         });
-
         totalDom.textContent=`💰 总价值：$${Math.round(total).toLocaleString()}`;
         timeDom.textContent=`上次更新：${new Date().toLocaleTimeString()}`;
       }catch(e){
@@ -248,15 +199,9 @@
       }finally{spinner.classList.remove('spin');}
     }
 
-    /* -------- 事件 / 自动刷新 / 主题 -------- */
     refreshBtn.onclick=refresh;
     let timer=setInterval(refresh,CFG.INTERVAL);
     autoCb.onchange=()=>{autoCb.checked?timer=setInterval(refresh,CFG.INTERVAL):clearInterval(timer)};
-    const applyTheme=d=>{document.documentElement.dataset.theme=d?'dark':'';themeCb.checked=d};
-    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
-    themeCb.onchange=()=>applyTheme(themeCb.checked);
-
-    /* -------- 首次加载 -------- */
     refresh();
   })();
   </script>
