@@ -72,12 +72,12 @@
     const CFG={
       ADDRESS:'0x099f84de4fb511e861ca8f635623eae409405873',
       TOKENS:[
-        {symbol:'ZKJ',address:'0xc71b5f631354be6853efE9C3AB6b9590F8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null},
+        {symbol:'ZKJ',address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null},
         {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
       ],
       RPC:'https://bsc-dataseed.binance.org/',
       MULTICALL:'0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb',
-      TIMEOUT:8000,RETRY:1,INTERVAL:60000,PRICE_CACHE:30000   // 1 分钟
+      TIMEOUT:8000,RETRY:1,INTERVAL:60000,PRICE_CACHE:30000
     };
 
     const rowsBox=document.getElementById('rows'),
@@ -104,35 +104,21 @@
     const setCached=(a,p)=>localStorage.setItem('p_'+a,JSON.stringify({p,ts:Date.now()}));
 
     async function getPrice(addr){
-      const c=getCached(addr);if(c) return c;
+      const c=getCached(addr);if(c)return c;
       const lower=addr.toLowerCase();
       const attempts=[
-        /* ① DexScreener /tokens */
-        async()=>{
-          const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${lower}`);
-          const p=(j.pairs||[]).find(x=>['USDT','USDC'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
-          if(p) return +p.priceUsd; throw 0;
-        },
-        /* ② DexScreener /search */
-        async()=>{
-          const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${lower}`);
-          const p=(j.pairs||[]).find(x=>['USDT','USDC'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
-          if(p) return +p.priceUsd; throw 0;
-        },
-        /* ③ GeckoTerminal */
-        async()=>{
-          const j=await fetchJSON(`https://api.geckoterminal.com/api/v2/simple/networks/bsc/token_price/${lower}`);
-          const v=+Object.values(j.data.attributes.token_prices)[0]; if(v) return v; throw 0;
-        },
-        /* ④ PancakeSwap Info */
-        async()=>{
-          const j=await fetchJSON(`https://api.pancakeswap.info/api/v2/tokens/${lower}`);
-          const v=+j.data?.price; if(v) return v; throw 0;
-        }
+        async()=>{const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${lower}`);
+                  const p=(j.pairs||[]).find(x=>['USDT','USDC'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
+                  if(p)return +p.priceUsd;throw 0;},
+        async()=>{const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${lower}`);
+                  const p=(j.pairs||[]).find(x=>['USDT','USDC'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
+                  if(p)return +p.priceUsd;throw 0;},
+        async()=>{const j=await fetchJSON(`https://api.geckoterminal.com/api/v2/simple/networks/bsc/token_price/${lower}`);
+                  const v=+Object.values(j.data.attributes.token_prices)[0];if(v)return v;throw 0;},
+        async()=>{const j=await fetchJSON(`https://api.pancakeswap.info/api/v2/tokens/${lower}`);
+                  const v=+j.data?.price;if(v)return v;throw 0;}
       ];
-      for(const fn of attempts){
-        try{const p=await fn(); setCached(addr,p); return p;}catch{}
-      }
+      for(const fn of attempts){try{const p=await fn();setCached(addr,p);return p;}catch{}}
       throw new Error('价格接口全部失效');
     }
 
