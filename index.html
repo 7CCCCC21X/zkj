@@ -5,106 +5,91 @@
   <title>ZKJ-KOGE 流动性池子实时数据</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <style>
-    :root{
+    :root {
       --c-primary:#0078d4;--c-primary-dark:#005fa3;--c-bg:#f9f9f9;
       --c-text:#222;--c-sub:#555;--c-card:#fff;--c-skeleton:#e5e7eb;
       --grad-total:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    body{
+    body {
       font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
       background:var(--c-bg);color:var(--c-text);padding:28px 16px;
       display:flex;flex-direction:column;align-items:center
     }
-    /* 顶栏 -------------------------------------------------- */
-    .topbar{
+    .topbar {
       width:100%;max-width:680px;display:flex;justify-content:space-between;
       align-items:center;margin-bottom:18px
     }
-    .title{
+    .title {
       font-size:24px;font-weight:700;color:var(--c-primary);
       display:flex;align-items:center;gap:6px
     }
-    #spinner{display:none}
-    .spin{display:block;animation:rotate 1s linear infinite}
-    @keyframes rotate{to{transform:rotate(360deg)}}
-
-    .controls{
+    #spinner {display:none}
+    .spin {display:block;animation:rotate 1s linear infinite}
+    @keyframes rotate {to{transform:rotate(360deg)}}
+    .controls {
       display:flex;gap:10px;align-items:center;flex-wrap:wrap;
       justify-content:flex-end
     }
-    .switch{
+    .switch {
       display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer
     }
     .switch input{accent-color:var(--c-primary);cursor:pointer}
-    select{
+    select {
       padding:6px 10px;border:1px solid #ccc;border-radius:6px;
       font-size:14px;cursor:pointer
     }
-    .btn{
+    .btn {
       display:inline-flex;align-items:center;justify-content:center;gap:6px;
       padding:10px 20px;font-size:15px;background:var(--c-primary);color:#fff;
       border:none;border-radius:8px;text-decoration:none;cursor:pointer;
       transition:.18s background
     }
-    .btn:hover{background:var(--c-primary-dark)}
-    .btn:disabled{opacity:.6;cursor:not-allowed}
-
-    /* 卡片 -------------------------------------------------- */
-    .cards{
+    .btn:hover {background:var(--c-primary-dark)}
+    .btn:disabled {opacity:.6;cursor:not-allowed}
+    .cards {
       width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px
     }
-    .row{
+    .row {
       display:grid;grid-template-columns:auto 1fr auto;align-items:center;
       background:var(--c-card);padding:14px 20px 14px 16px;border-radius:10px;
       box-shadow:0 2px 6px rgba(0,0,0,.05);position:relative;overflow:hidden
     }
-    .row::before{
+    .row::before {
       content:"";position:absolute;left:0;top:0;width:6px;height:100%;
       background:var(--stripe,#ccc)
     }
-    .label{
+    .label {
       display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;
       white-space:nowrap
     }
-    .token-icon,.icon-fallback{
+    .token-icon,.icon-fallback {
       width:32px;height:32px;border-radius:50%;object-fit:cover
     }
-    .icon-fallback{
+    .icon-fallback {
       display:flex;align-items:center;justify-content:center;color:#fff;
       font-weight:700
     }
     .value{text-align:right;min-width:152px}
-    .amount-label,.price-label{
+    .amount-label,.price-label {
       display:block;font-size:12px;font-weight:600;color:var(--c-sub)
     }
     .value-num{font-size:18px;font-variant-numeric:tabular-nums}
-    .value-price{
+    .value-price {
       font-size:14px;font-variant-numeric:tabular-nums;margin-top:2px
     }
-
-    /* 总价值 ------------------------------------------------ */
-    .total-wrap{
+    .total-wrap {
       margin:22px 0 10px;padding:10px 22px;border-radius:12px;
       background:rgba(79,172,254,.12);display:flex;align-items:center;gap:8px
     }
-    .total{
+    .total {
       font-size:26px;font-weight:700;background:var(--grad-total);
       -webkit-background-clip:text;color:transparent
     }
     .update-time{font-size:14px;color:var(--c-sub);margin-bottom:14px}
-
-    /* Skeleton --------------------------------------------- */
-    .skeleton{
-      background:var(--c-skeleton);border-radius:6px;
-      animation:sFade 1.2s ease-in-out infinite
-    }
-    @keyframes sFade{0%{opacity:.9}50%{opacity:.4}100%{opacity:.9}}
-
-    /* 响应式 ------------------------------------------------ */
     @media(max-width:560px){
       .token-icon,.icon-fallback{width:26px;height:26px}
-      .row{
+      .row {
         padding:12px 14px 12px 12px;grid-template-columns:auto 1fr
       }
       .value{text-align:left;margin-top:6px;min-width:0}
@@ -113,7 +98,6 @@
   </style>
 </head>
 <body>
-  <!-- 顶栏 -->
   <div class="topbar">
     <div class="title">
       流动性池子实时数据
@@ -123,60 +107,69 @@
                 stroke-dasharray="60" stroke-dashoffset="48"/>
       </svg>
     </div>
-
     <div class="controls">
       <select id="poolSelect"></select>
       <label class="switch"><input type="checkbox" id="autoCb" checked>自动刷新</label>
-      <a class="btn" href="https://debank.com/profile/0x099f84de4fb511e861ca8f635623eae409405873" target="_blank">📦 池子余额传送门</a>
-      <!-- 新增作者推特按钮 -->
+      <a class="btn" id="debankLink" href="#" target="_blank">📦 池子余额传送门</a>
       <a class="btn" href="https://x.com/0xXIAOc" target="_blank">🐦 作者推特</a>
     </div>
   </div>
-
   <div id="rows" class="cards"></div>
   <div class="total-wrap"><span id="totalValue" class="total">💰</span></div>
   <div id="updateTime" class="update-time"></div>
   <button id="refreshBtn" class="btn">⟳ 刷新余额</button>
-
-  <!-- 依赖 -->
+  <!-- JS 脚本依赖 -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7/dist/ethers.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css"/>
 
   <script>
   ;(async () => {
-    /* ----------------  支持多池  ---------------- */
     const POOLS = {
       "ZKJ-KOGE": {
         tokens: [
-          {symbol:'ZKJ',address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',
-           logo:'./zkj.png',color:'#1e88ff',decimals:null},
-          {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',
-           logo:'./koge.png',color:'#ff9800',decimals:null}
+          { symbol: 'ZKJ', address: '0xc71b5f631354be6853efe9c3ab6b9590f8302e81', logo: './zkj.png', color: '#1e88ff', decimals: null },
+          { symbol: 'KOGE', address: '0xe6df05ce8c8301223373cf5b969afcb1498c5528', logo: './koge.png', color: '#ff9800', decimals: null }
         ],
-        rpc:'https://bsc-dataseed.binance.org/',
-        address:'0x099f84de4fb511e861ca8f635623eae409405873'
+        rpc: 'https://bsc-dataseed.binance.org/',
+        address: '0x099f84de4fb511e861ca8f635623eae409405873',
+        debank: 'https://debank.com/profile/0x099f84de4fb511e861ca8f635623eae409405873'
+      },
+      "USDT-KOGE": {
+        tokens: [
+          { symbol: 'USDT', address: '0x55d398326f99059ff775485246999027b3197955', logo: './usdt.png', color: '#26a17b', decimals: null },
+          { symbol: 'KOGE', address: '0xe6df05ce8c8301223373cf5b969afcb1498c5528', logo: './koge.png', color: '#ff9800', decimals: null }
+        ],
+        rpc: 'https://bsc-dataseed.binance.org/',
+        address: '0xcf59b8c8baa2dea520e3d549f97d4e49ade17057',
+        debank: 'https://debank.com/profile/0xcf59b8c8baa2dea520e3d549f97d4e49ade17057'
       }
-      // 未来可在此处继续添加其他池子
     };
 
-    /* ------------ 全局变量 ------------ */
-    let currentPoolName = Object.keys(POOLS)[0]; // 默认第一个
+    let currentPoolName = Object.keys(POOLS)[0];
     const poolSelect = document.getElementById('poolSelect');
+    const portalBtn = document.getElementById('debankLink');
+
     Object.keys(POOLS).forEach(name => {
       const opt = document.createElement('option');
-      opt.value = name; opt.textContent = name;
+      opt.value = name;
+      opt.textContent = name;
       poolSelect.appendChild(opt);
     });
     poolSelect.value = currentPoolName;
-    poolSelect.onchange = () => { currentPoolName = poolSelect.value; initProvider(); refresh(); };
+    portalBtn.href = POOLS[currentPoolName].debank;
+    poolSelect.onchange = () => {
+      currentPoolName = poolSelect.value;
+      portalBtn.href = POOLS[currentPoolName].debank;
+      initProvider();
+      refresh();
+    };
 
-    // DOM
-    const rowsBox  = document.getElementById('rows'),
+    const rowsBox = document.getElementById('rows'),
           totalDom = document.getElementById('totalValue'),
-          timeDom  = document.getElementById('updateTime'),
-          spinner  = document.getElementById('spinner'),
-          autoCb   = document.getElementById('autoCb'),
+          timeDom = document.getElementById('updateTime'),
+          spinner = document.getElementById('spinner'),
+          autoCb = document.getElementById('autoCb'),
           refreshBtn = document.getElementById('refreshBtn');
 
     const CFG = {
@@ -186,33 +179,27 @@
       PRICE_CACHE: 3e4,
       MULTICALL: '0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb'
     };
-    const ERC20 = [
-      'function decimals() view returns(uint8)',
-      'function balanceOf(address) view returns(uint256)'
-    ];
-    const MC = [
-      'function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'
-    ];
+    const ERC20 = ['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
+    const MC = ['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'];
     const iface = new ethers.utils.Interface(ERC20);
 
     let provider, multicall;
     function initProvider() {
-      provider  = new ethers.providers.JsonRpcProvider(POOLS[currentPoolName].rpc);
+      provider = new ethers.providers.JsonRpcProvider(POOLS[currentPoolName].rpc);
       multicall = new ethers.Contract(CFG.MULTICALL, MC, provider);
     }
     initProvider();
 
-    /* ------------ 工具函数 ------------ */
     async function fetchJSON(url, timeout = CFG.TIMEOUT, retry = CFG.RETRY){
       for(let i = 0; i <= retry; i++){
         const ctrl = new AbortController();
         const t = setTimeout(() => ctrl.abort(), timeout);
-        try{
+        try {
           const res = await fetch(url, { signal: ctrl.signal });
           clearTimeout(t);
           if(!res.ok) throw new Error(res.statusText);
           return res.json();
-        }catch(e){
+        } catch (e) {
           if(i === retry) throw e;
           await new Promise(r => setTimeout(r, 500));
         }
@@ -220,14 +207,12 @@
     }
 
     const memCache = {}, LS = 'P_';
-    const getCached = k =>
-      memCache[k] ??
-      (() => {
-        try{
-          const {p, ts} = JSON.parse(localStorage.getItem(LS+k) || '{}');
-          return Date.now() - ts < CFG.PRICE_CACHE ? p : null;
-        }catch{ return null }
-      })();
+    const getCached = k => memCache[k] ?? (() => {
+      try {
+        const {p, ts} = JSON.parse(localStorage.getItem(LS+k) || '{}');
+        return Date.now() - ts < CFG.PRICE_CACHE ? p : null;
+      } catch { return null }
+    })();
     const setCached = (k, v) => {
       memCache[k] = v;
       localStorage.setItem(LS+k, JSON.stringify({p:v, ts:Date.now()}));
@@ -259,11 +244,11 @@
         }
       ];
       for(const fn of sources){
-        try{
+        try {
           const p = await fn();
           setCached(addr, p);
           return p;
-        }catch{}
+        } catch {}
       }
       throw new Error('价格接口全部失效');
     }
@@ -279,7 +264,6 @@
       return ret.map(x => ethers.BigNumber.from(x));
     }
 
-    /* ------------ Skeleton UI ------------ */
     function skeleton(tokens){
       rowsBox.innerHTML = '';
       tokens.forEach(t => {
@@ -305,10 +289,9 @@
       timeDom.textContent = '';
     }
 
-    const fmtQty   = n => (n >= 1 ? n.toLocaleString(undefined,{maximumFractionDigits:2}) : n.toFixed(4));
+    const fmtQty = n => (n >= 1 ? n.toLocaleString(undefined,{maximumFractionDigits:2}) : n.toFixed(4));
     const fmtPrice = n => (n >= 1 ? n.toFixed(2) : n.toFixed(4));
 
-    /* ------------ 刷新逻辑 ------------ */
     async function refresh(){
       const pool = POOLS[currentPoolName];
       skeleton(pool.tokens);
@@ -316,16 +299,16 @@
       refreshBtn.disabled = true;
       refreshBtn.textContent = '刷新中…';
 
-      try{
+      try {
         await Promise.all(pool.tokens.map(ensureDecimals));
         const balances = await getBalances(pool.tokens, pool.address);
-        const prices   = await Promise.all(pool.tokens.map(t => getPrice(t.address)));
+        const prices = await Promise.all(pool.tokens.map(t => getPrice(t.address)));
 
         rowsBox.innerHTML = ''; let total = 0;
         pool.tokens.forEach((t, i) => {
           const human = parseFloat(ethers.utils.formatUnits(balances[i], t.decimals));
           const price = prices[i];
-          const usd   = Math.round(human * price);
+          const usd = Math.round(human * price);
           total += usd;
 
           const r = document.createElement('div');
@@ -348,22 +331,21 @@
         });
 
         totalDom.textContent = `💰 总价值：$${total.toLocaleString()}`;
-        timeDom.textContent  = '上次更新：' + new Date().toLocaleTimeString();
-      }catch(err){
+        timeDom.textContent = '上次更新：' + new Date().toLocaleTimeString();
+      } catch (err) {
         Toastify({
-          text:'❌ 数据获取失败：' + err.message,
-          duration:3500,gravity:'top',close:true,
-          style:{background:'#e11d48'}
+          text: '❌ 数据获取失败：' + err.message,
+          duration: 3500, gravity: 'top', close: true,
+          style: { background: '#e11d48' }
         }).showToast();
         totalDom.textContent = '总价值获取失败';
-      }finally{
+      } finally {
         spinner.classList.remove('spin');
         refreshBtn.disabled = false;
         refreshBtn.textContent = '⟳ 刷新余额';
       }
     }
 
-    /* ------------ 自动刷新 & 事件绑定 ------------ */
     refreshBtn.onclick = refresh;
     let timer = setInterval(refresh, CFG.INTERVAL);
     autoCb.onchange = () => {
@@ -371,8 +353,7 @@
         ? timer = setInterval(refresh, CFG.INTERVAL)
         : clearInterval(timer);
     };
-
-    refresh(); // 首次加载
+    refresh();
   })();
   </script>
 </body>
