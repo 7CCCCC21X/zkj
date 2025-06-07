@@ -6,19 +6,32 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <style>
     :root {
-      --c-primary:#0078d4;--c-primary-dark:#005fa3;--c-bg:#f9f9f9;
-      --c-text:#222;--c-sub:#555;--c-card:#fff;--c-skeleton:#e5e7eb;
+      --c-primary:#0078d4;
+      --c-primary-dark:#005fa3;
+      --c-bg:#f9f9f9;
+      --c-text:#222;
+      --c-sub:#555;
+      --c-card:#fff;
+      --c-skeleton:#e5e7eb;
       --grad-total:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
+    }
+    html.dark {
+      --c-bg:#111827;
+      --c-text:#f3f4f6;
+      --c-sub:#9ca3af;
+      --c-card:#1f2937;
+      --c-skeleton:#374151;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body {
       font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
       background:var(--c-bg);color:var(--c-text);padding:28px 16px;
-      display:flex;flex-direction:column;align-items:center
+      display:flex;flex-direction:column;align-items:center;
+      transition:background 0.3s,color 0.3s;
     }
     .topbar {
       width:100%;max-width:680px;display:flex;justify-content:space-between;
-      align-items:center;margin-bottom:18px
+      align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;
     }
     .title {
       font-size:24px;font-weight:700;color:var(--c-primary);
@@ -110,6 +123,7 @@
     <div class="controls">
       <select id="poolSelect"></select>
       <label class="switch"><input type="checkbox" id="autoCb" checked>自动刷新</label>
+      <label class="switch"><input type="checkbox" id="darkModeToggle">深色模式</label>
       <a class="btn" id="debankLink" href="#" target="_blank">📦 池子余额传送门</a>
       <a class="btn" href="https://x.com/0xXIAOc" target="_blank">🐦 作者推特</a>
     </div>
@@ -118,11 +132,23 @@
   <div class="total-wrap"><span id="totalValue" class="total">💰</span></div>
   <div id="updateTime" class="update-time"></div>
   <button id="refreshBtn" class="btn">⟳ 刷新余额</button>
-  <!-- JS 脚本依赖 -->
+
+  <script>
+    // 深色模式逻辑
+    const html = document.documentElement;
+    const darkToggle = document.getElementById('darkModeToggle');
+    const saved = localStorage.getItem('darkMode');
+    const applyDark = (val) => {
+      html.classList.toggle('dark', val);
+      localStorage.setItem('darkMode', val ? '1' : '0');
+      darkToggle.checked = val;
+    };
+    darkToggle.onchange = () => applyDark(darkToggle.checked);
+    applyDark(saved === '1');
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7/dist/ethers.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css"/>
-
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css" />
   <script>
   ;(async () => {
     const POOLS = {
@@ -270,8 +296,8 @@
         const d = document.createElement('div');
         d.className = 'row';
         d.style.setProperty('--stripe', t.color);
-        d.innerHTML = `
-          <div class="label">
+        d.innerHTML =
+          `<div class="label">
             <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
                  onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')"/>
             <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
@@ -314,8 +340,8 @@
           const r = document.createElement('div');
           r.className = 'row';
           r.style.setProperty('--stripe', t.color);
-          r.innerHTML = `
-            <div class="label">
+          r.innerHTML =
+            `<div class="label">
               <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
                    onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')"/>
               <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
