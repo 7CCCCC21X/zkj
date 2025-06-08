@@ -74,12 +74,13 @@
     .value-price{font-size:14px;margin-top:2px;font-variant-numeric:tabular-nums}
     .total-wrap{
       margin:22px 0 10px;padding:10px 22px;border-radius:12px;
-      background:rgba(79,172,254,.12);display:flex;align-items:center;gap:8px;
+      background:rgba(79,172,254,.12);display:flex;align-items:center;gap:12px;flex-wrap:wrap;
     }
     .total{
       font-size:26px;font-weight:700;background:var(--grad-total);
       -webkit-background-clip:text;color:transparent;
     }
+    .badge{font-size:20px;font-weight:700}
     .update-time{font-size:14px;color:var(--c-sub);margin-bottom:14px}
     .skeleton{background:var(--c-skeleton);border-radius:4px;animation:pulse 1.2s infinite ease-in-out}
     @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
@@ -104,7 +105,6 @@
     <div class="controls" id="portalWrap">
       <select id="poolSelect"></select>
       <label class="switch"><input type="checkbox" id="autoCb" checked>自动刷新</label>
-      <!-- 合并开关（仅 USDT-KOGE 用） -->
       <label class="switch" id="mergeWrap" style="display:none;">
         <input type="checkbox" id="mergeCb" checked>合并显示
       </label>
@@ -114,7 +114,12 @@
   </div>
 
   <div id="rows" class="cards"></div>
-  <div class="total-wrap"><span id="totalValue" class="total">💰</span></div>
+
+  <div class="total-wrap">
+    <span id="totalValue" class="total">💰</span>
+    <span id="recommend" class="badge"></span>
+  </div>
+
   <div id="updateTime" class="update-time"></div>
   <button id="refreshBtn" class="btn">⟳ 刷新余额</button>
 
@@ -122,6 +127,7 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7/dist/ethers.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css"/>
+
   <script>
   const html=document.documentElement;
   const darkToggle=document.getElementById('darkModeToggle');
@@ -130,6 +136,7 @@
   darkToggle.onchange=()=>applyDark(darkToggle.checked);applyDark(saved==='1');
 
   (async()=>{
+    /* ---------- 池子配置 ---------- */
     const POOLS={
       "ZKJ-KOGE":{
         tokens:[
@@ -179,11 +186,13 @@
           mergeCb=document.getElementById('mergeCb'),
           rowsBox=document.getElementById('rows'),
           totalDom=document.getElementById('totalValue'),
+          recommendDom=document.getElementById('recommend'),
           timeDom=document.getElementById('updateTime'),
           spinner=document.getElementById('spinner'),
           autoCb=document.getElementById('autoCb'),
           refreshBtn=document.getElementById('refreshBtn');
 
+    /* ---------- 初始化下拉 ---------- */
     Object.keys(POOLS).forEach(n=>{
       const o=document.createElement('option');o.value=n;o.textContent=n;poolSelect.appendChild(o);
     });
@@ -193,8 +202,17 @@
     let mergeMode=true;
 
     /* ---------- RPC & Multicall ---------- */
-    const CFG={TIMEOUT:8000,RETRY:1,INTERVAL:60000,PRICE_CACHE:30000,MULTICALL:'0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb'};
-    const ERC20=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
+    const CFG={
+      TIMEOUT:8000,
+      RETRY:1,
+      INTERVAL:60000,
+      PRICE_CACHE:30000,
+      MULTICALL:'0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb'
+    };
+    const ERC20=[
+      'function decimals() view returns(uint8)',
+      'function balanceOf(address) view returns(uint256)'
+    ];
     const MC=['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'];
     const iface=new ethers.utils.Interface(ERC20);
     let provider,multicall;
@@ -215,6 +233,7 @@
     };
     const setCached=(k,v)=>{memCache[k]=v;localStorage.setItem(LS+k,JSON.stringify({p:v,ts:Date.now()}))};
 
+    /* ---------- 工具函数 ---------- */
     async function fetchJSON(url,timeout=CFG.TIMEOUT,retry=CFG.RETRY){
       for(let i=0;i<=retry;i++){
         const ctrl=new AbortController();
@@ -232,7 +251,7 @@
     }
 
     async function getPrice(addr){
-      const cached=getCached(addr);if(cached)return cached;
+      const cached=getCached(addr);if(cached!==null)return cached;
       const lower=addr.toLowerCase();
       const sources=[
         async()=>{
@@ -247,7 +266,11 @@
         }
       ];
       for(const fn of sources){
-        try{const p=await fn();setCached(addr,p);return p}catch{}
+        try{
+          const price=await fn();
+          setCached(addr,price);
+          return price;
+        }catch{}
       }
       throw new Error('价格接口全部失效');
     }
@@ -265,7 +288,7 @@
       return tokens.map((_,i)=>all.reduce((s,r)=>s.add(r[i]),ethers.BigNumber.from(0)));
     }
 
-    /* ---------- UI ---------- */
+    /* ---------- UI 辅助 ---------- */
     function clearPortalButtons(){
       document.querySelectorAll('.debank-btn').forEach(el=>el.remove());
     }
@@ -323,26 +346,44 @@
         });
       }
       totalDom.textContent='💰';
+      recommendDom.textContent='';
       timeDom.textContent='';
     }
 
     const fmtQty=n=>(n>=1?n.toLocaleString(undefined,{maximumFractionDigits:2}):n.toFixed(4));
     const fmtPrice=n=>(n>=1?n.toFixed(2):n.toFixed(4));
 
+    /* ---------- 推荐状态 ---------- */
+    function setRecommend(totalUsd){
+      let text='',color='';
+      if(totalUsd<2000000){
+        text='🚫 不推荐'; color='#e11d48';
+      }else if(totalUsd<3000000){
+        text='⚠️ 谨慎';   color='#f59e0b';
+      }else{
+        text='✅ 推荐刷'; color='#10b981';
+      }
+      recommendDom.textContent=text;
+      recommendDom.style.color=color;
+    }
+
+    /* ---------- 刷新逻辑 ---------- */
     async function refresh(){
       const pool=POOLS[currentPoolName];
       spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';
       skeleton(pool.tokens,currentPoolName==="USDT-KOGE"&&!mergeMode?pool.addresses.length:1,'');
+
       try{
         await Promise.all(pool.tokens.map(ensureDecimals));
         const prices=await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
         let total=0;rowsBox.innerHTML='';
+
         if(currentPoolName==="USDT-KOGE"&&!mergeMode){
           for(let j=0;j<pool.addresses.length;j++){
             const addrBal=await getBalances(pool.tokens,[pool.addresses[j]]);
             pool.tokens.forEach((t,i)=>{
               const human=parseFloat(ethers.utils.formatUnits(addrBal[i],t.decimals));
-              const usd=Math.round(human*prices[i]);total+=usd;
+              const usd=Math.round(human*prices[i]); total+=usd;
               const r=document.createElement('div');
               r.className='row';r.style.setProperty('--stripe',t.color);
               r.innerHTML=`
@@ -365,7 +406,7 @@
           const balances=await getBalances(pool.tokens,pool.addresses);
           pool.tokens.forEach((t,i)=>{
             const human=parseFloat(ethers.utils.formatUnits(balances[i],t.decimals));
-            const usd=Math.round(human*prices[i]);total+=usd;
+            const usd=Math.round(human*prices[i]); total+=usd;
             const r=document.createElement('div');
             r.className='row';r.style.setProperty('--stripe',t.color);
             r.innerHTML=`
@@ -384,20 +425,25 @@
             rowsBox.appendChild(r);
           });
         }
+
         totalDom.textContent=`💰 总价值：$${total.toLocaleString()}`;
+        setRecommend(total);
         timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
       }catch(err){
         Toastify({text:'❌ 数据获取失败：'+err.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
-        totalDom.textContent='总价值获取失败';
+        totalDom.textContent='总价值获取失败'; recommendDom.textContent='';
       }finally{
         spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';
       }
     }
 
-    /* ---------- 事件 ---------- */
+    /* ---------- 事件绑定 ---------- */
     poolSelect.onchange=()=>{
       currentPoolName=poolSelect.value;
-      initProvider();updatePortalLinks();updateMergeSwitch();refresh();
+      initProvider();
+      updatePortalLinks();
+      updateMergeSwitch();
+      refresh();
     };
     mergeCb.onchange=()=>{mergeMode=mergeCb.checked;refresh()};
     refreshBtn.onclick=refresh;
@@ -405,6 +451,7 @@
     let timer=setInterval(refresh,CFG.INTERVAL);
     autoCb.onchange=()=>{autoCb.checked?timer=setInterval(refresh,CFG.INTERVAL):clearInterval(timer)};
 
+    /* ---------- 初始化 ---------- */
     updatePortalLinks();
     updateMergeSwitch();
     refresh();
