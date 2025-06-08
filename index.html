@@ -2,109 +2,90 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
-  <title>ZKJ-KOGE 流动性池子实时数据</title>
+  <title>流动性池子实时数据</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <style>
-    :root {
-      --c-primary:#0078d4;
-      --c-primary-dark:#005fa3;
-      --c-bg:#f9f9f9;
-      --c-text:#222;
-      --c-sub:#555;
-      --c-card:#fff;
-      --c-skeleton:#e5e7eb;
+    :root{
+      --c-primary:#0078d4;--c-primary-dark:#005fa3;--c-bg:#f9f9f9;
+      --c-text:#222;--c-sub:#555;--c-card:#fff;--c-skeleton:#e5e7eb;
       --grad-total:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
     }
-    html.dark {
-      --c-bg:#111827;
-      --c-text:#f3f4f6;
-      --c-sub:#9ca3af;
-      --c-card:#1f2937;
-      --c-skeleton:#374151;
+    html.dark{
+      --c-bg:#111827;--c-text:#f3f4f6;--c-sub:#9ca3af;
+      --c-card:#1f2937;--c-skeleton:#374151;
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    body {
+    body{
       font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
       background:var(--c-bg);color:var(--c-text);padding:28px 16px;
       display:flex;flex-direction:column;align-items:center;
-      transition:background 0.3s,color 0.3s;
+      transition:background .3s,color .3s;
     }
-    .topbar {
+    .topbar{
       width:100%;max-width:680px;display:flex;justify-content:space-between;
       align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;
     }
-    .title {
+    .title{
       font-size:24px;font-weight:700;color:var(--c-primary);
-      display:flex;align-items:center;gap:6px
+      display:flex;align-items:center;gap:6px;
     }
-    #spinner {display:none}
-    .spin {display:block;animation:rotate 1s linear infinite}
-    @keyframes rotate {to{transform:rotate(360deg)}}
-    .controls {
-      display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-      justify-content:flex-end
-    }
-    .switch {
-      display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer
-    }
+    #spinner{display:none}
+    .spin{display:block;animation:rotate 1s linear infinite}
+    @keyframes rotate{to{transform:rotate(360deg)}}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .switch{display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer}
     .switch input{accent-color:var(--c-primary);cursor:pointer}
-    select {
+    select{
       padding:6px 10px;border:1px solid #ccc;border-radius:6px;
-      font-size:14px;cursor:pointer
+      font-size:14px;cursor:pointer;
     }
-    .btn {
-      display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    .btn{
+      display:inline-flex;align-items:center;gap:6px;
       padding:10px 20px;font-size:15px;background:var(--c-primary);color:#fff;
       border:none;border-radius:8px;text-decoration:none;cursor:pointer;
-      transition:.18s background
+      transition:.18s background;
     }
-    .btn:hover {background:var(--c-primary-dark)}
-    .btn:disabled {opacity:.6;cursor:not-allowed}
-    .cards {
-      width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px
-    }
-    .row {
+    .btn:hover{background:var(--c-primary-dark)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .btn-icon{width:16px;height:16px;vertical-align:middle}
+    .cards{width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px}
+    .row{
       display:grid;grid-template-columns:auto 1fr auto;align-items:center;
       background:var(--c-card);padding:14px 20px 14px 16px;border-radius:10px;
-      box-shadow:0 2px 6px rgba(0,0,0,.05);position:relative;overflow:hidden
+      box-shadow:0 2px 6px rgba(0,0,0,.05);position:relative;overflow:hidden;
     }
-    .row::before {
+    .row::before{
       content:"";position:absolute;left:0;top:0;width:6px;height:100%;
-      background:var(--stripe,#ccc)
+      background:var(--stripe,#ccc);
     }
-    .label {
+    .label{
       display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;
-      white-space:nowrap
+      white-space:nowrap;
     }
-    .token-icon,.icon-fallback {
-      width:32px;height:32px;border-radius:50%;object-fit:cover
+    .token-icon,.icon-fallback{
+      width:32px;height:32px;border-radius:50%;object-fit:cover;
     }
-    .icon-fallback {
-      display:flex;align-items:center;justify-content:center;color:#fff;
-      font-weight:700
+    .icon-fallback{
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
     }
     .value{text-align:right;min-width:152px}
-    .amount-label,.price-label {
-      display:block;font-size:12px;font-weight:600;color:var(--c-sub)
-    }
+    .amount-label,.price-label{display:block;font-size:12px;font-weight:600;color:var(--c-sub)}
     .value-num{font-size:18px;font-variant-numeric:tabular-nums}
-    .value-price {
-      font-size:14px;font-variant-numeric:tabular-nums;margin-top:2px
-    }
-    .total-wrap {
+    .value-price{font-size:14px;margin-top:2px;font-variant-numeric:tabular-nums}
+    .total-wrap{
       margin:22px 0 10px;padding:10px 22px;border-radius:12px;
-      background:rgba(79,172,254,.12);display:flex;align-items:center;gap:8px
+      background:rgba(79,172,254,.12);display:flex;align-items:center;gap:8px;
     }
-    .total {
+    .total{
       font-size:26px;font-weight:700;background:var(--grad-total);
-      -webkit-background-clip:text;color:transparent
+      -webkit-background-clip:text;color:transparent;
     }
     .update-time{font-size:14px;color:var(--c-sub);margin-bottom:14px}
+    .skeleton{background:var(--c-skeleton);border-radius:4px;animation:pulse 1.2s infinite ease-in-out}
+    @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
     @media(max-width:560px){
       .token-icon,.icon-fallback{width:26px;height:26px}
-      .row {
-        padding:12px 14px 12px 12px;grid-template-columns:auto 1fr
-      }
+      .row{padding:12px 14px 12px 12px;grid-template-columns:auto 1fr}
       .value{text-align:left;margin-top:6px;min-width:0}
       .controls{flex-direction:column;align-items:flex-start}
     }
@@ -117,268 +98,297 @@
       <svg id="spinner" width="16" height="16" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
                 fill="none" stroke-linecap="round"
-                stroke-dasharray="60" stroke-dashoffset="48"/>
+                stroke-dasharray="60" stroke-dashoffset="48"></circle>
       </svg>
     </div>
-    <div class="controls">
+    <div class="controls" id="portalWrap">
       <select id="poolSelect"></select>
       <label class="switch"><input type="checkbox" id="autoCb" checked>自动刷新</label>
+      <!-- 动态插入合并开关 -->
+      <label class="switch" id="mergeWrap" style="display:none;">
+        <input type="checkbox" id="mergeCb" checked>合并显示
+      </label>
       <label class="switch"><input type="checkbox" id="darkModeToggle">深色模式</label>
-      <a class="btn" id="debankLink" href="#" target="_blank">📦 池子余额传送门</a>
       <a class="btn" href="https://x.com/0xXIAOc" target="_blank">🐦 作者推特</a>
     </div>
   </div>
+
   <div id="rows" class="cards"></div>
   <div class="total-wrap"><span id="totalValue" class="total">💰</span></div>
   <div id="updateTime" class="update-time"></div>
   <button id="refreshBtn" class="btn">⟳ 刷新余额</button>
 
-  <script>
-    // 深色模式逻辑
-    const html = document.documentElement;
-    const darkToggle = document.getElementById('darkModeToggle');
-    const saved = localStorage.getItem('darkMode');
-    const applyDark = (val) => {
-      html.classList.toggle('dark', val);
-      localStorage.setItem('darkMode', val ? '1' : '0');
-      darkToggle.checked = val;
-    };
-    darkToggle.onchange = () => applyDark(darkToggle.checked);
-    applyDark(saved === '1');
-  </script>
+  <!-- 依赖 -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7/dist/ethers.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css"/>
   <script>
-  ;(async () => {
-    const POOLS = {
-      "ZKJ-KOGE": {
-        tokens: [
-          { symbol: 'ZKJ', address: '0xc71b5f631354be6853efe9c3ab6b9590f8302e81', logo: './zkj.png', color: '#1e88ff', decimals: null },
-          { symbol: 'KOGE', address: '0xe6df05ce8c8301223373cf5b969afcb1498c5528', logo: './koge.png', color: '#ff9800', decimals: null }
+  const html=document.documentElement;
+  const darkToggle=document.getElementById('darkModeToggle');
+  const saved=localStorage.getItem('darkMode');
+  const applyDark=v=>{html.classList.toggle('dark',v);localStorage.setItem('darkMode',v?'1':'0');darkToggle.checked=v};
+  darkToggle.onchange=()=>applyDark(darkToggle.checked);applyDark(saved==='1');
+
+  (async()=>{
+    const POOLS={
+      "ZKJ-KOGE":{
+        tokens:[
+          {symbol:'ZKJ',address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null},
+          {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
         ],
-        rpc: 'https://bsc-dataseed.binance.org/',
-        address: '0x099f84de4fb511e861ca8f635623eae409405873',
-        debank: 'https://debank.com/profile/0x099f84de4fb511e861ca8f635623eae409405873'
+        rpc:'https://bsc-dataseed.binance.org/',
+        addresses:['0x099f84de4fb511e861ca8f635623eae409405873'],
+        debank:'https://debank.com/profile/0x099f84de4fb511e861ca8f635623eae409405873'
       },
-      "USDT-KOGE": {
-        tokens: [
-          { symbol: 'USDT', address: '0x55d398326f99059ff775485246999027b3197955', logo: './usdt.png', color: '#26a17b', decimals: null },
-          { symbol: 'KOGE', address: '0xe6df05ce8c8301223373cf5b969afcb1498c5528', logo: './koge.png', color: '#ff9800', decimals: null }
+      "USDT-KOGE":{
+        tokens:[
+          {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
+          {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
         ],
-        rpc: 'https://bsc-dataseed.binance.org/',
-        address: '0xcf59b8c8baa2dea520e3d549f97d4e49ade17057',
-        debank: 'https://debank.com/profile/0xcf59b8c8baa2dea520e3d549f97d4e49ade17057'
+        rpc:'https://bsc-dataseed.binance.org/',
+        addresses:[
+          '0xcf59b8c8baa2dea520e3d549f97d4e49ade17057', // Pancake
+          '0x81c7294b66955824bc04acb642ae8dc58e6ce507'  // Uni
+        ],
+        labels:['Pancake','Uni']
       }
     };
 
-    let currentPoolName = Object.keys(POOLS)[0];
-    const poolSelect = document.getElementById('poolSelect');
-    const portalBtn = document.getElementById('debankLink');
+    /* ---------- DOM ---------- */
+    const poolSelect=document.getElementById('poolSelect'),
+          portalWrap=document.getElementById('portalWrap'),
+          mergeWrap=document.getElementById('mergeWrap'),
+          mergeCb=document.getElementById('mergeCb'),
+          rowsBox=document.getElementById('rows'),
+          totalDom=document.getElementById('totalValue'),
+          timeDom=document.getElementById('updateTime'),
+          spinner=document.getElementById('spinner'),
+          autoCb=document.getElementById('autoCb'),
+          refreshBtn=document.getElementById('refreshBtn');
 
-    Object.keys(POOLS).forEach(name => {
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      poolSelect.appendChild(opt);
+    Object.keys(POOLS).forEach(n=>{
+      const o=document.createElement('option');o.value=n;o.textContent=n;poolSelect.appendChild(o);
     });
-    poolSelect.value = currentPoolName;
-    portalBtn.href = POOLS[currentPoolName].debank;
-    poolSelect.onchange = () => {
-      currentPoolName = poolSelect.value;
-      portalBtn.href = POOLS[currentPoolName].debank;
-      initProvider();
-      refresh();
-    };
 
-    const rowsBox = document.getElementById('rows'),
-          totalDom = document.getElementById('totalValue'),
-          timeDom = document.getElementById('updateTime'),
-          spinner = document.getElementById('spinner'),
-          autoCb = document.getElementById('autoCb'),
-          refreshBtn = document.getElementById('refreshBtn');
+    let currentPoolName=Object.keys(POOLS)[0];
+    poolSelect.value=currentPoolName;
+    let mergeMode=true;
 
-    const CFG = {
-      TIMEOUT: 8000,
-      RETRY: 1,
-      INTERVAL: 60000,
-      PRICE_CACHE: 3e4,
-      MULTICALL: '0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb'
-    };
-    const ERC20 = ['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
-    const MC = ['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'];
-    const iface = new ethers.utils.Interface(ERC20);
-
-    let provider, multicall;
-    function initProvider() {
-      provider = new ethers.providers.JsonRpcProvider(POOLS[currentPoolName].rpc);
-      multicall = new ethers.Contract(CFG.MULTICALL, MC, provider);
+    /* ---------- RPC & Multicall ---------- */
+    const CFG={TIMEOUT:8000,RETRY:1,INTERVAL:60000,PRICE_CACHE:30000,MULTICALL:'0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb'};
+    const ERC20=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
+    const MC=['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'];
+    const iface=new ethers.utils.Interface(ERC20);
+    let provider,multicall;
+    function initProvider(){
+      provider=new ethers.providers.JsonRpcProvider(POOLS[currentPoolName].rpc);
+      multicall=new ethers.Contract(CFG.MULTICALL,MC,provider);
     }
     initProvider();
 
-    async function fetchJSON(url, timeout = CFG.TIMEOUT, retry = CFG.RETRY){
-      for(let i = 0; i <= retry; i++){
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), timeout);
-        try {
-          const res = await fetch(url, { signal: ctrl.signal });
+    /* ---------- 缓存 ---------- */
+    const memCache={}, LS='P_';
+    const getCached=k=>{
+      if(memCache[k]!=null)return memCache[k];
+      try{
+        const {p,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');
+        return Date.now()-ts<CFG.PRICE_CACHE?p:null;
+      }catch{return null}
+    };
+    const setCached=(k,v)=>{memCache[k]=v;localStorage.setItem(LS+k,JSON.stringify({p:v,ts:Date.now()}))};
+
+    async function fetchJSON(url,timeout=CFG.TIMEOUT,retry=CFG.RETRY){
+      for(let i=0;i<=retry;i++){
+        const ctrl=new AbortController();
+        const t=setTimeout(()=>ctrl.abort(),timeout);
+        try{
+          const res=await fetch(url,{signal:ctrl.signal});
           clearTimeout(t);
-          if(!res.ok) throw new Error(res.statusText);
+          if(!res.ok)throw new Error(res.statusText);
           return res.json();
-        } catch (e) {
-          if(i === retry) throw e;
-          await new Promise(r => setTimeout(r, 500));
+        }catch(e){
+          if(i===retry)throw e;
+          await new Promise(r=>setTimeout(r,500));
         }
       }
     }
 
-    const memCache = {}, LS = 'P_';
-    const getCached = k => memCache[k] ?? (() => {
-      try {
-        const {p, ts} = JSON.parse(localStorage.getItem(LS+k) || '{}');
-        return Date.now() - ts < CFG.PRICE_CACHE ? p : null;
-      } catch { return null }
-    })();
-    const setCached = (k, v) => {
-      memCache[k] = v;
-      localStorage.setItem(LS+k, JSON.stringify({p:v, ts:Date.now()}));
-    };
-
     async function getPrice(addr){
-      const cached = getCached(addr); if(cached) return cached;
-      const lower = addr.toLowerCase();
-      const sources = [
-        async () => {
-          const j = await fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${lower}`);
-          const p = (j.pairs || []).find(x => ['USDT','USDC'].includes(x.quoteToken.symbol) && x.liquidity.usd > 5000);
-          if(p) return +p.priceUsd; throw 0;
+      const cached=getCached(addr);if(cached)return cached;
+      const lower=addr.toLowerCase();
+      const sources=[
+        async()=>{
+          const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${lower}`);
+          const p=(j.pairs||[]).find(x=>['USDT','USDC'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
+          if(p)return +p.priceUsd;throw 0;
         },
-        async () => {
-          const j = await fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${lower}`);
-          const p = (j.pairs || []).find(x => ['USDT','USDC'].includes(x.quoteToken.symbol) && x.liquidity.usd > 5000);
-          if(p) return +p.priceUsd; throw 0;
-        },
-        async () => {
-          const j = await fetchJSON(`https://api.geckoterminal.com/api/v2/simple/networks/bsc/token_price/${lower}`);
-          const v = +Object.values(j.data.attributes.token_prices)[0];
-          if(v) return v; throw 0;
-        },
-        async () => {
-          const j = await fetchJSON(`https://api.pancakeswap.info/api/v2/tokens/${lower}`);
-          const v = +j.data?.price;
-          if(v) return v; throw 0;
+        async()=>{
+          const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${lower}`);
+          const p=(j.pairs||[]).find(x=>['USDT','USDC'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
+          if(p)return +p.priceUsd;throw 0;
         }
       ];
       for(const fn of sources){
-        try {
-          const p = await fn();
-          setCached(addr, p);
-          return p;
-        } catch {}
+        try{const p=await fn();setCached(addr,p);return p}catch{}
       }
       throw new Error('价格接口全部失效');
     }
 
     async function ensureDecimals(t){
-      if(t.decimals != null) return;
-      t.decimals = await new ethers.Contract(t.address, ERC20, provider).decimals().catch(() => 18);
+      if(t.decimals!=null)return;
+      t.decimals=await new ethers.Contract(t.address,ERC20,provider).decimals().catch(()=>18);
     }
 
-    async function getBalances(tokens, addr){
-      const calls = tokens.map(t => [t.address, iface.encodeFunctionData('balanceOf', [addr])]);
-      const [,ret] = await multicall.aggregate(calls);
-      return ret.map(x => ethers.BigNumber.from(x));
+    async function getBalances(tokens,addrs){
+      const all=await Promise.all(addrs.map(addr=>{
+        const calls=tokens.map(t=>[t.address,iface.encodeFunctionData('balanceOf',[addr])]);
+        return multicall.aggregate(calls).then(r=>r[1].map(x=>ethers.BigNumber.from(x)));
+      }));
+      return tokens.map((_,i)=>all.reduce((s,r)=>s.add(r[i]),ethers.BigNumber.from(0)));
     }
 
-    function skeleton(tokens){
-      rowsBox.innerHTML = '';
-      tokens.forEach(t => {
-        const d = document.createElement('div');
-        d.className = 'row';
-        d.style.setProperty('--stripe', t.color);
-        d.innerHTML =
-          `<div class="label">
-            <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
-                 onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')"/>
-            <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
-            ${t.symbol}
-          </div>
-          <div class="value">
-            <span class="amount-label">数量</span>
-            <div class="skeleton" style="width:120px;height:20px"></div>
-            <span class="price-label">价值</span>
-            <div class="skeleton" style="width:100px;height:18px"></div>
-          </div>`;
-        rowsBox.appendChild(d);
-      });
-      totalDom.textContent = '💰';
-      timeDom.textContent = '';
+    /* ---------- UI ---------- */
+    function clearPortalButtons(){
+      document.querySelectorAll('.debank-btn').forEach(el=>el.remove());
+    }
+    function updatePortalLinks(){
+      clearPortalButtons();
+      if(currentPoolName==="USDT-KOGE"){
+        const btn1=document.createElement('a');
+        btn1.className='btn debank-btn';
+        btn1.href='https://debank.com/profile/0xcf59b8c8baa2dea520e3d549f97d4e49ade17057';
+        btn1.target='_blank';
+        btn1.innerHTML=`<img src="./pancake.png" class="btn-icon">Pancake池子余额传送门`;
+
+        const btn2=document.createElement('a');
+        btn2.className='btn debank-btn';
+        btn2.href='https://debank.com/profile/0x81c7294b66955824bc04acb642ae8dc58e6ce507/history';
+        btn2.target='_blank';
+        btn2.innerHTML=`<img src="./uni.png" class="btn-icon">Uni 池子余额传送门`;
+
+        portalWrap.insertBefore(btn2,portalWrap.lastElementChild);
+        portalWrap.insertBefore(btn1,portalWrap.lastElementChild);
+      }else{
+        const btn=document.createElement('a');
+        btn.className='btn debank-btn';
+        btn.href=POOLS[currentPoolName].debank;
+        btn.target='_blank';
+        btn.innerHTML=`<img src="./pancake.png" class="btn-icon">池子余额传送门`;
+        portalWrap.insertBefore(btn,portalWrap.lastElementChild);
+      }
+    }
+    function updateMergeSwitch(){
+      mergeWrap.style.display=currentPoolName==="USDT-KOGE"?'flex':'none';
     }
 
-    const fmtQty = n => (n >= 1 ? n.toLocaleString(undefined,{maximumFractionDigits:2}) : n.toFixed(4));
-    const fmtPrice = n => (n >= 1 ? n.toFixed(2) : n.toFixed(4));
-
-    async function refresh(){
-      const pool = POOLS[currentPoolName];
-      skeleton(pool.tokens);
-      spinner.classList.add('spin');
-      refreshBtn.disabled = true;
-      refreshBtn.textContent = '刷新中…';
-
-      try {
-        await Promise.all(pool.tokens.map(ensureDecimals));
-        const balances = await getBalances(pool.tokens, pool.address);
-        const prices = await Promise.all(pool.tokens.map(t => getPrice(t.address)));
-
-        rowsBox.innerHTML = ''; let total = 0;
-        pool.tokens.forEach((t, i) => {
-          const human = parseFloat(ethers.utils.formatUnits(balances[i], t.decimals));
-          const price = prices[i];
-          const usd = Math.round(human * price);
-          total += usd;
-
-          const r = document.createElement('div');
-          r.className = 'row';
-          r.style.setProperty('--stripe', t.color);
-          r.innerHTML =
-            `<div class="label">
+    function skeleton(tokens,repeat=1,labelPrefix=''){
+      rowsBox.innerHTML='';
+      for(let r=0;r<repeat;r++){
+        tokens.forEach(t=>{
+          const d=document.createElement('div');
+          d.className='row';
+          d.style.setProperty('--stripe',t.color);
+          d.innerHTML=`
+            <div class="label">
               <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
-                   onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')"/>
+                   onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
               <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
-              ${t.symbol}
+              ${labelPrefix}${t.symbol}
             </div>
             <div class="value">
               <span class="amount-label">数量</span>
-              <span class="value-num" title="${human}">${fmtQty(human)}</span>
+              <div class="skeleton" style="width:120px;height:20px"></div>
               <span class="price-label">价值</span>
-              <span class="value-price">≈ $${usd.toLocaleString()} @ $${fmtPrice(price)}</span>
+              <div class="skeleton" style="width:100px;height:18px"></div>
             </div>`;
-          rowsBox.appendChild(r);
+          rowsBox.appendChild(d);
         });
+      }
+      totalDom.textContent='💰';
+      timeDom.textContent='';
+    }
 
-        totalDom.textContent = `💰 总价值：$${total.toLocaleString()}`;
-        timeDom.textContent = '上次更新：' + new Date().toLocaleTimeString();
-      } catch (err) {
-        Toastify({
-          text: '❌ 数据获取失败：' + err.message,
-          duration: 3500, gravity: 'top', close: true,
-          style: { background: '#e11d48' }
-        }).showToast();
-        totalDom.textContent = '总价值获取失败';
-      } finally {
-        spinner.classList.remove('spin');
-        refreshBtn.disabled = false;
-        refreshBtn.textContent = '⟳ 刷新余额';
+    const fmtQty=n=>(n>=1?n.toLocaleString(undefined,{maximumFractionDigits:2}):n.toFixed(4));
+    const fmtPrice=n=>(n>=1?n.toFixed(2):n.toFixed(4));
+
+    async function refresh(){
+      const pool=POOLS[currentPoolName];
+      spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';
+      skeleton(pool.tokens,currentPoolName==="USDT-KOGE"&&!mergeMode?pool.addresses.length:1,'');
+      try{
+        await Promise.all(pool.tokens.map(ensureDecimals));
+        const prices=await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
+        let total=0;rowsBox.innerHTML='';
+        if(currentPoolName==="USDT-KOGE"&&!mergeMode){
+          for(let j=0;j<pool.addresses.length;j++){
+            const addrBal=await getBalances(pool.tokens,[pool.addresses[j]]);
+            pool.tokens.forEach((t,i)=>{
+              const human=parseFloat(ethers.utils.formatUnits(addrBal[i],t.decimals));
+              const usd=Math.round(human*prices[i]);total+=usd;
+              const r=document.createElement('div');
+              r.className='row';r.style.setProperty('--stripe',t.color);
+              r.innerHTML=`
+                <div class="label">
+                  <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
+                       onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
+                  <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
+                  ${t.symbol} (${pool.labels[j]})
+                </div>
+                <div class="value">
+                  <span class="amount-label">数量</span>
+                  <span class="value-num" title="${human}">${fmtQty(human)}</span>
+                  <span class="price-label">价值</span>
+                  <span class="value-price">≈ $${usd.toLocaleString()} @ $${fmtPrice(prices[i])}</span>
+                </div>`;
+              rowsBox.appendChild(r);
+            });
+          }
+        }else{
+          const balances=await getBalances(pool.tokens,pool.addresses);
+          pool.tokens.forEach((t,i)=>{
+            const human=parseFloat(ethers.utils.formatUnits(balances[i],t.decimals));
+            const usd=Math.round(human*prices[i]);total+=usd;
+            const r=document.createElement('div');
+            r.className='row';r.style.setProperty('--stripe',t.color);
+            r.innerHTML=`
+              <div class="label">
+                <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
+                     onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
+                <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
+                ${t.symbol}
+              </div>
+              <div class="value">
+                <span class="amount-label">数量</span>
+                <span class="value-num" title="${human}">${fmtQty(human)}</span>
+                <span class="price-label">价值</span>
+                <span class="value-price">≈ $${usd.toLocaleString()} @ $${fmtPrice(prices[i])}</span>
+              </div>`;
+            rowsBox.appendChild(r);
+          });
+        }
+        totalDom.textContent=`💰 总价值：$${total.toLocaleString()}`;
+        timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
+      }catch(err){
+        Toastify({text:'❌ 数据获取失败：'+err.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
+        totalDom.textContent='总价值获取失败';
+      }finally{
+        spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';
       }
     }
 
-    refreshBtn.onclick = refresh;
-    let timer = setInterval(refresh, CFG.INTERVAL);
-    autoCb.onchange = () => {
-      autoCb.checked
-        ? timer = setInterval(refresh, CFG.INTERVAL)
-        : clearInterval(timer);
+    /* ---------- 事件 ---------- */
+    poolSelect.onchange=()=>{
+      currentPoolName=poolSelect.value;
+      initProvider();updatePortalLinks();updateMergeSwitch();refresh();
     };
+    mergeCb.onchange=()=>{mergeMode=mergeCb.checked;refresh()};
+    refreshBtn.onclick=refresh;
+
+    let timer=setInterval(refresh,CFG.INTERVAL);
+    autoCb.onchange=()=>{autoCb.checked?timer=setInterval(refresh,CFG.INTERVAL):clearInterval(timer)};
+
+    updatePortalLinks();
+    updateMergeSwitch();
     refresh();
   })();
   </script>
