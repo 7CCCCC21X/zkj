@@ -104,7 +104,7 @@
     <div class="controls" id="portalWrap">
       <select id="poolSelect"></select>
       <label class="switch"><input type="checkbox" id="autoCb" checked>自动刷新</label>
-      <!-- 动态插入合并开关 -->
+      <!-- 合并开关（仅 USDT-KOGE 用） -->
       <label class="switch" id="mergeWrap" style="display:none;">
         <input type="checkbox" id="mergeCb" checked>合并显示
       </label>
@@ -151,6 +151,15 @@
           '0x81c7294b66955824bc04acb642ae8dc58e6ce507'  // Uni
         ],
         labels:['Pancake','Uni']
+      },
+      "USDT-TAIKO":{
+        tokens:[
+          {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
+          {symbol:'TAIKO',address:'0x30c60b20c25b2810ca524810467a0c342294fc61',logo:'./taiko.png',color:'#8e44ad',decimals:null}
+        ],
+        rpc:'https://bsc-dataseed.binance.org/',
+        addresses:['0xbe77ac86750fb0359fa623e63e7f009979bb701c'],
+        debank:'https://debank.com/profile/0xbe77ac86750fb0359fa623e63e7f009979bb701c'
       }
     };
 
