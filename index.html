@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>流动性池子实时数据</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <!-- 网页 logo -->
   <link rel="icon" href="mus2s-cn38c-001.ico" type="image/x-icon" />
   <style>
     :root{
@@ -144,7 +143,7 @@
 
     /* ---------- 池子配置 ---------- */
     const POOLS={
-      "ZKJ-KOGE":{ /* …保持不变… */ 
+      "ZKJ-KOGE":{
         tokens:[
           {symbol:'ZKJ',address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null},
           {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
@@ -153,7 +152,7 @@
         addresses:['0x099f84de4fb511e861ca8f635623eae409405873'],
         debank:'https://debank.com/profile/0x099f84de4fb511e861ca8f635623eae409405873'
       },
-      "USDT-KOGE":{ /* …保持不变… */
+      "USDT-KOGE":{
         tokens:[
           {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
           {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
@@ -182,6 +181,15 @@
         rpc:'https://bsc-dataseed.binance.org/',
         addresses:['0x5968feacba91d55010975e0cfe8acfc32664ad33'],
         debank:'https://debank.com/profile/0x5968feacba91d55010975e0cfe8acfc32664ad33'
+      },
+      "USDC-SQD":{
+        tokens:[
+          {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
+          {symbol:'SQD', address:'0xe50e3d1a46070444f44df911359033f2937fcc13',logo:'./sqd.png', color:'#f06292',decimals:null}
+        ],
+        rpc:'https://bsc-dataseed.binance.org/',
+        addresses:['0x43256d0dcc2571e564311edb6d7e8f076a72fc46'],
+        debank:'https://debank.com/profile/0x43256d0dcc2571e564311edb6d7e8f076a72fc46'
       }
     };
 
@@ -239,7 +247,12 @@
     };
     const setCached=(k,v)=>{memCache[k]=v;localStorage.setItem(LS+k,JSON.stringify({p:v,ts:Date.now()}))};
 
-    /* ---------- 工具函数 ---------- */
+    /* ---------- 价格获取 ---------- */
+    const STABLE_PRICE={
+      '0x55d398326f99059ff775485246999027b3197955':1, // USDT (BSC-Peg)
+      '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1  // USDC (BSC-Peg)
+    };
+
     async function fetchJSON(url,timeout=CFG.TIMEOUT,retry=CFG.RETRY){
       for(let i=0;i<=retry;i++){
         const ctrl=new AbortController();
@@ -257,8 +270,19 @@
     }
 
     async function getPrice(addr){
-      const cached=getCached(addr);if(cached!==null)return cached;
       const lower=addr.toLowerCase();
+
+      /* ① 稳定币白名单：恒定 1 美元 */
+      if(lower in STABLE_PRICE){
+        setCached(lower,1);
+        return 1;
+      }
+
+      /* ② 缓存 */
+      const cached=getCached(lower);
+      if(cached!==null)return cached;
+
+      /* ③ 多源查询 */
       const sources=[
         async()=>{
           const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${lower}`);
@@ -274,7 +298,7 @@
       for(const fn of sources){
         try{
           const price=await fn();
-          setCached(addr,price);
+          setCached(lower,price);
           return price;
         }catch{}
       }
@@ -285,7 +309,6 @@
       if(t.decimals!=null)return;
       t.decimals=await new ethers.Contract(t.address,ERC20,provider).decimals().catch(()=>18);
     }
-
     async function getBalances(tokens,addrs){
       const all=await Promise.all(addrs.map(addr=>{
         const calls=tokens.map(t=>[t.address,iface.encodeFunctionData('balanceOf',[addr])]);
@@ -362,22 +385,17 @@
     /* ---------- 推荐状态 ---------- */
     function setRecommend(totalUsd){
       let text='',color='';
-      if(totalUsd<2000000){
-        text='🚫 不推荐'; color='#e11d48';
-      }else if(totalUsd<3000000){
-        text='⚠️ 谨慎';   color='#f59e0b';
-      }else{
-        text='✅ 推荐刷'; color:'#10b981';
-      }
+      if(totalUsd<2000000){text='🚫 不推荐'; color='#e11d48';}
+      else if(totalUsd<3000000){text='⚠️ 谨慎'; color='#f59e0b';}
+      else{text='✅ 推荐刷'; color:'#10b981';}
       recommendDom.textContent=text;
       recommendDom.style.color=color;
     }
 
     /* ---------- 刷新逻辑 ---------- */
     async function refresh(){
-      /* 并发锁：上一轮没完成就直接返回 */
-      if (loading) return;
-      loading = true;
+      if(loading)return;
+      loading=true;
 
       const pool=POOLS[currentPoolName];
       spinner.classList.add('spin');
@@ -453,7 +471,7 @@
         spinner.classList.remove('spin');
         refreshBtn.disabled=false;
         refreshBtn.textContent='⟳ 刷新余额';
-        loading = false;   /* 解锁 */
+        loading=false;
       }
     }
 
