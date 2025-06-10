@@ -5,6 +5,8 @@
   <title>流动性池子实时数据</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <link rel="icon" href="mus2s-cn38c-001.ico" type="image/x-icon" />
+
+  <!-- ===== 样式 ===== -->
   <style>
     :root{
       --c-primary:#0078d4;--c-primary-dark:#005fa3;--c-bg:#f9f9f9;
@@ -33,6 +35,7 @@
     #spinner{display:none}
     .spin{display:block;animation:rotate 1s linear infinite}
     @keyframes rotate{to{transform:rotate(360deg)}}
+
     .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .switch{display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer}
     .switch input{accent-color:var(--c-primary);cursor:pointer}
@@ -49,6 +52,7 @@
     .btn:hover{background:var(--c-primary-dark)}
     .btn:disabled{opacity:.6;cursor:not-allowed}
     .btn-icon{width:16px;height:16px;vertical-align:middle}
+
     .cards{width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px}
     .row{
       display:grid;grid-template-columns:auto 1fr auto;align-items:center;
@@ -63,28 +67,25 @@
       display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;
       white-space:nowrap;
     }
-    .token-icon,.icon-fallback{
-      width:32px;height:32px;border-radius:50%;object-fit:cover;
-    }
-    .icon-fallback{
-      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
-    }
+    .token-icon,.icon-fallback{width:32px;height:32px;border-radius:50%;object-fit:cover}
+    .icon-fallback{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
     .value{text-align:right;min-width:152px}
     .amount-label,.price-label{display:block;font-size:12px;font-weight:600;color:var(--c-sub)}
     .value-num{font-size:18px;font-variant-numeric:tabular-nums}
     .value-price{font-size:14px;margin-top:2px;font-variant-numeric:tabular-nums}
+
     .total-wrap{
       margin:22px 0 10px;padding:10px 22px;border-radius:12px;
       background:rgba(79,172,254,.12);display:flex;align-items:center;gap:12px;flex-wrap:wrap;
     }
-    .total{
-      font-size:26px;font-weight:700;background:var(--grad-total);
-      -webkit-background-clip:text;color:transparent;
-    }
+    .total{font-size:26px;font-weight:700;background:var(--grad-total);
+      -webkit-background-clip:text;color:transparent}
     .badge{font-size:20px;font-weight:700}
     .update-time{font-size:14px;color:var(--c-sub);margin-bottom:14px}
+
     .skeleton{background:var(--c-skeleton);border-radius:4px;animation:pulse 1.2s infinite ease-in-out}
     @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+
     @media(max-width:560px){
       .token-icon,.icon-fallback{width:26px;height:26px}
       .row{padding:12px 14px 12px 12px;grid-template-columns:auto 1fr}
@@ -122,28 +123,35 @@
   </div>
 
   <div id="updateTime" class="update-time"></div>
-  <button id="refreshBtn" class="btn">⟳ 刷新余额</button>
+  <button id="refreshBtn" class="btn" aria-label="刷新余额">⟳ 刷新余额</button>
 
-  <!-- 依赖 -->
+  <!-- ===== 依赖 ===== -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7/dist/ethers.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css"/>
 
+  <!-- ===== 业务脚本 ===== -->
   <script>
-  const html=document.documentElement;
-  const darkToggle=document.getElementById('darkModeToggle');
-  const saved=localStorage.getItem('darkMode');
-  const applyDark=v=>{html.classList.toggle('dark',v);localStorage.setItem('darkMode',v?'1':'0');darkToggle.checked=v};
-  darkToggle.onchange=()=>applyDark(darkToggle.checked);applyDark(saved==='1');
+  /* -------------------- 暗黑模式 -------------------- */
+  const html      = document.documentElement;
+  const darkToggle= document.getElementById('darkModeToggle');
+  const saved     = localStorage.getItem('darkMode');
+  const applyDark = v => {
+    html.classList.toggle('dark', v);
+    localStorage.setItem('darkMode', v ? '1' : '0');
+    darkToggle.checked = v;
+  };
+  darkToggle.onchange = () => applyDark(darkToggle.checked);
+  applyDark(saved === '1');
 
-  /* 并发锁：防止重复渲染 */
+  /* -------------------- 并发锁 -------------------- */
   let loading = false;
 
-  (async()=>{
+  (async () => {
 
     /* ---------- 池子配置 ---------- */
-    const POOLS={
-      "ZKJ-KOGE":{
+    const POOLS = {
+      "ZKJ-KOGE": {
         tokens:[
           {symbol:'ZKJ',address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null},
           {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
@@ -152,7 +160,7 @@
         addresses:['0x099f84de4fb511e861ca8f635623eae409405873'],
         debank:'https://debank.com/profile/0x099f84de4fb511e861ca8f635623eae409405873'
       },
-      "USDT-KOGE":{
+      "USDT-KOGE": {
         tokens:[
           {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
           {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
@@ -164,7 +172,7 @@
         ],
         labels:['Pancake','Uni']
       },
-      "USDT-TAIKO":{
+      "USDT-TAIKO": {
         tokens:[
           {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
           {symbol:'TAIKO',address:'0x30c60b20c25b2810ca524810467a0c342294fc61',logo:'./taiko.png',color:'#8e44ad',decimals:null}
@@ -173,7 +181,7 @@
         addresses:['0xbe77ac86750fb0359fa623e63e7f009979bb701c'],
         debank:'https://debank.com/profile/0xbe77ac86750fb0359fa623e63e7f009979bb701c'
       },
-      "USDT-ZKJ":{
+      "USDT-ZKJ": {
         tokens:[
           {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
           {symbol:'ZKJ',address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null}
@@ -182,7 +190,7 @@
         addresses:['0x5968feacba91d55010975e0cfe8acfc32664ad33'],
         debank:'https://debank.com/profile/0x5968feacba91d55010975e0cfe8acfc32664ad33'
       },
-      "USDC-SQD":{
+      "USDC-SQD": {
         tokens:[
           {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
           {symbol:'SQD', address:'0xe50e3d1a46070444f44df911359033f2937fcc13',logo:'./sqd.png', color:'#f06292',decimals:null}
@@ -193,171 +201,180 @@
       }
     };
 
-    /* ---------- DOM ---------- */
-    const poolSelect=document.getElementById('poolSelect'),
-          portalWrap=document.getElementById('portalWrap'),
-          mergeWrap=document.getElementById('mergeWrap'),
-          mergeCb=document.getElementById('mergeCb'),
-          rowsBox=document.getElementById('rows'),
-          totalDom=document.getElementById('totalValue'),
-          recommendDom=document.getElementById('recommend'),
-          timeDom=document.getElementById('updateTime'),
-          spinner=document.getElementById('spinner'),
-          autoCb=document.getElementById('autoCb'),
-          refreshBtn=document.getElementById('refreshBtn');
+    /* ---------- DOM 引用 ---------- */
+    const poolSelect = document.getElementById('poolSelect'),
+          portalWrap = document.getElementById('portalWrap'),
+          mergeWrap  = document.getElementById('mergeWrap'),
+          mergeCb    = document.getElementById('mergeCb'),
+          rowsBox    = document.getElementById('rows'),
+          totalDom   = document.getElementById('totalValue'),
+          recommendDom = document.getElementById('recommend'),
+          timeDom    = document.getElementById('updateTime'),
+          spinner    = document.getElementById('spinner'),
+          autoCb     = document.getElementById('autoCb'),
+          refreshBtn = document.getElementById('refreshBtn');
 
     /* ---------- 初始化下拉 ---------- */
-    Object.keys(POOLS).forEach(n=>{
-      const o=document.createElement('option');o.value=n;o.textContent=n;poolSelect.appendChild(o);
+    Object.keys(POOLS).forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      poolSelect.appendChild(opt);
     });
 
-    let currentPoolName=Object.keys(POOLS)[0];
-    poolSelect.value=currentPoolName;
-    let mergeMode=true;
+    let currentPoolName = Object.keys(POOLS)[0];
+    poolSelect.value = currentPoolName;
+    let mergeMode = true;
 
-    /* ---------- RPC & Multicall ---------- */
-    const CFG={
-      TIMEOUT:8000,
-      RETRY:1,
-      INTERVAL:60000,
-      PRICE_CACHE:30000,
-      MULTICALL:'0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb'
-    };
-    const ERC20=[
-      'function decimals() view returns(uint8)',
-      'function balanceOf(address) view returns(uint256)'
-    ];
-    const MC=['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'];
-    const iface=new ethers.utils.Interface(ERC20);
-    let provider,multicall;
-    function initProvider(){
-      provider=new ethers.providers.JsonRpcProvider(POOLS[currentPoolName].rpc);
-      multicall=new ethers.Contract(CFG.MULTICALL,MC,provider);
+    /* ---------- Provider 缓存 ---------- */
+    const providers = {};
+    let provider, multicall;
+    const MULTICALL_ABI = ['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'];
+    const ERC20_ABI    = ['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
+
+    function initProvider() {
+      const url = POOLS[currentPoolName].rpc;
+      provider  = providers[url] ??= new ethers.providers.JsonRpcProvider(url);
+      multicall = new ethers.Contract('0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb', MULTICALL_ABI, provider);
     }
     initProvider();
 
-    /* ---------- 缓存 ---------- */
-    const memCache={}, LS='P_';
-    const getCached=k=>{
-      if(memCache[k]!=null)return memCache[k];
+    /* ---------- 全局配置 ---------- */
+    const CFG = {
+      TIMEOUT      : 8000,
+      RETRY        : 1,
+      INTERVAL     : 60000,
+      PRICE_CACHE  : 30000
+    };
+
+    /* ---------- 本地缓存工具 ---------- */
+    const memCache = {};
+    const LS_PREFIX = 'P_';
+    const getCached = k => {
+      if (memCache[k] != null) return memCache[k];
       try{
-        const {p,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');
-        return Date.now()-ts<CFG.PRICE_CACHE?p:null;
+        const {v,ts} = JSON.parse(localStorage.getItem(LS_PREFIX+k) || '{}');
+        return Date.now() - ts < CFG.PRICE_CACHE ? v : null;
       }catch{return null}
     };
-    const setCached=(k,v)=>{memCache[k]=v;localStorage.setItem(LS+k,JSON.stringify({p:v,ts:Date.now()}))};
-
-    /* ---------- 价格获取 ---------- */
-    const STABLE_PRICE={
-      '0x55d398326f99059ff775485246999027b3197955':1, // USDT (BSC-Peg)
-      '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1  // USDC (BSC-Peg)
+    const setCached = (k, v) => {
+      memCache[k] = v;
+      localStorage.setItem(LS_PREFIX+k, JSON.stringify({v, ts: Date.now()}));
     };
 
-    async function fetchJSON(url,timeout=CFG.TIMEOUT,retry=CFG.RETRY){
+    /* ---------- 价格获取 ---------- */
+    const STABLE_PRICE = {
+      '0x55d398326f99059ff775485246999027b3197955': 1, // USDT
+      '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d': 1  // USDC
+    };
+
+    async function fetchJSON(url, timeout = CFG.TIMEOUT, retry = CFG.RETRY){
       for(let i=0;i<=retry;i++){
-        const ctrl=new AbortController();
-        const t=setTimeout(()=>ctrl.abort(),timeout);
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), timeout);
         try{
-          const res=await fetch(url,{signal:ctrl.signal});
+          const res = await fetch(url, {signal:ctrl.signal});
           clearTimeout(t);
-          if(!res.ok)throw new Error(res.statusText);
+          if(!res.ok) throw new Error(res.statusText);
           return res.json();
         }catch(e){
-          if(i===retry)throw e;
-          await new Promise(r=>setTimeout(r,500));
+          if(i===retry) throw e;
+          await new Promise(r=>setTimeout(r, 500));
         }
       }
     }
 
     async function getPrice(addr){
-      const lower=addr.toLowerCase();
+      const lower = addr.toLowerCase();
+      if(lower in STABLE_PRICE){setCached(lower,1);return 1;}
 
-      /* ① 稳定币白名单：恒定 1 美元 */
-      if(lower in STABLE_PRICE){
-        setCached(lower,1);
-        return 1;
-      }
+      const cached = getCached(lower);
+      if(cached !== null) return cached;
 
-      /* ② 缓存 */
-      const cached=getCached(lower);
-      if(cached!==null)return cached;
-
-      /* ③ 多源查询 */
-      const sources=[
-        async()=>{
-          const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${lower}`);
+      const p1 = () => fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${lower}`)
+        .then(j=>{
           const p=(j.pairs||[]).find(x=>['USDT','USDC'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
-          if(p)return +p.priceUsd;throw 0;
-        },
-        async()=>{
-          const j=await fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${lower}`);
+          if(!p) throw 0;
+          return +p.priceUsd;
+        });
+
+      const p2 = () => fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${lower}`)
+        .then(j=>{
           const p=(j.pairs||[]).find(x=>['USDT','USDC'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
-          if(p)return +p.priceUsd;throw 0;
-        }
-      ];
-      for(const fn of sources){
-        try{
-          const price=await fn();
-          setCached(lower,price);
-          return price;
-        }catch{}
+          if(!p) throw 0;
+          return +p.priceUsd;
+        });
+
+      try{
+        const price = await Promise.any([p1(), p2()]);
+        setCached(lower, price);
+        return price;
+      }catch{
+        throw new Error('价格接口全部失效');
       }
-      throw new Error('价格接口全部失效');
     }
 
-    async function ensureDecimals(t){
-      if(t.decimals!=null)return;
-      t.decimals=await new ethers.Contract(t.address,ERC20,provider).decimals().catch(()=>18);
+    /* ---------- decimals 缓存 ---------- */
+    async function ensureDecimals(token){
+      if(token.decimals != null) return;
+      const key = 'dec_'+token.address.toLowerCase();
+      let dec = getCached(key);
+      if(dec != null){ token.decimals = dec; return; }
+      try{
+        dec = await new ethers.Contract(token.address, ERC20_ABI, provider).decimals();
+      }catch{ dec = 18; }
+      token.decimals = dec;
+      setCached(key, dec);
     }
-    async function getBalances(tokens,addrs){
-      const all=await Promise.all(addrs.map(addr=>{
-        const calls=tokens.map(t=>[t.address,iface.encodeFunctionData('balanceOf',[addr])]);
+
+    /* ---------- balance 批量查询 ---------- */
+    const iface = new ethers.utils.Interface(ERC20_ABI);
+    async function getBalances(tokens, addrs){
+      const all = await Promise.all(addrs.map(addr=>{
+        const calls = tokens.map(t=>[t.address, iface.encodeFunctionData('balanceOf',[addr])]);
         return multicall.aggregate(calls).then(r=>r[1].map(x=>ethers.BigNumber.from(x)));
       }));
-      return tokens.map((_,i)=>all.reduce((s,r)=>s.add(r[i]),ethers.BigNumber.from(0)));
+      return tokens.map((_,i)=> all.reduce((s,r)=>s.add(r[i]), ethers.BigNumber.from(0)));
     }
 
-    /* ---------- UI 辅助 ---------- */
-    function clearPortalButtons(){
-      document.querySelectorAll('.debank-btn').forEach(el=>el.remove());
-    }
+    /* ---------- UI 工具 ---------- */
+    function clearPortalButtons(){ document.querySelectorAll('.debank-btn').forEach(el=>el.remove()); }
     function updatePortalLinks(){
       clearPortalButtons();
-      if(currentPoolName==="USDT-KOGE"){
-        const btn1=document.createElement('a');
-        btn1.className='btn debank-btn';
-        btn1.href='https://debank.com/profile/0xcf59b8c8baa2dea520e3d549f97d4e49ade17057';
-        btn1.target='_blank';
-        btn1.innerHTML=`<img src="./pancake.png" class="btn-icon">Pancake池子余额传送门`;
-
-        const btn2=document.createElement('a');
-        btn2.className='btn debank-btn';
-        btn2.href='https://debank.com/profile/0x81c7294b66955824bc04acb642ae8dc58e6ce507/history';
-        btn2.target='_blank';
-        btn2.innerHTML=`<img src="./uni.png" class="btn-icon">Uni 池子余额传送门`;
-
-        portalWrap.insertBefore(btn2,portalWrap.lastElementChild);
-        portalWrap.insertBefore(btn1,portalWrap.lastElementChild);
-      }else{
-        const btn=document.createElement('a');
+      const pool = POOLS[currentPoolName];
+      if(currentPoolName === 'USDT-KOGE'){
+        ['Pancake','Uni'].forEach((l,i)=>{
+          const btn = document.createElement('a');
+          btn.className='btn debank-btn';
+          btn.target='_blank';
+          btn.href = i===0
+            ? 'https://debank.com/profile/0xcf59b8c8baa2dea520e3d549f97d4e49ade17057'
+            : 'https://debank.com/profile/0x81c7294b66955824bc04acb642ae8dc58e6ce507/history';
+          btn.innerHTML=`<img src="${i===0?'./pancake.png':'./uni.png'}" class="btn-icon">${l} 池子余额传送门`;
+          portalWrap.insertBefore(btn, portalWrap.lastElementChild);
+        });
+      }else if(pool.debank){
+        const btn = document.createElement('a');
         btn.className='btn debank-btn';
-        btn.href=POOLS[currentPoolName].debank;
         btn.target='_blank';
-        btn.innerHTML=`<img src="./pancake.png" class="btn-icon">池子余额传送门`;
-        portalWrap.insertBefore(btn,portalWrap.lastElementChild);
+        btn.href = pool.debank;
+        btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
+        portalWrap.insertBefore(btn, portalWrap.lastElementChild);
       }
     }
     function updateMergeSwitch(){
-      mergeWrap.style.display=currentPoolName==="USDT-KOGE"?'flex':'none';
+      mergeWrap.style.display = currentPoolName==='USDT-KOGE' ? 'flex' : 'none';
     }
 
-    function skeleton(tokens,repeat=1,labelPrefix=''){
+    /* Skeleton 渲染（DocumentFragment） */
+    function skeleton(tokens, repeat=1, labelPrefix=''){
       rowsBox.innerHTML='';
+      const frag = document.createDocumentFragment();
       for(let r=0;r<repeat;r++){
         tokens.forEach(t=>{
           const d=document.createElement('div');
           d.className='row';
-          d.style.setProperty('--stripe',t.color);
+          d.style.setProperty('--stripe', t.color);
           d.innerHTML=`
             <div class="label">
               <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
@@ -371,91 +388,90 @@
               <span class="price-label">价值</span>
               <div class="skeleton" style="width:100px;height:18px"></div>
             </div>`;
-          rowsBox.appendChild(d);
+          frag.appendChild(d);
         });
       }
+      rowsBox.appendChild(frag);
       totalDom.textContent='💰';
       recommendDom.textContent='';
       timeDom.textContent='';
     }
 
-    const fmtQty=n=>(n>=1?n.toLocaleString(undefined,{maximumFractionDigits:2}):n.toFixed(4));
-    const fmtPrice=n=>(n>=1?n.toFixed(2):n.toFixed(4));
+    const fmtQty   = n => (n>=1 ? n.toLocaleString(undefined,{maximumFractionDigits:2}) : n.toFixed(4));
+    const fmtPrice = n => (n>=1 ? n.toFixed(2) : n.toFixed(4));
 
-    /* ---------- 推荐状态 ---------- */
-    function setRecommend(totalUsd){
-      let text='',color='';
-      if(totalUsd<2000000){text='🚫 不推荐'; color='#e11d48';}
-      else if(totalUsd<3000000){text='⚠️ 谨慎'; color='#f59e0b';}
-      else{text='✅ 推荐刷'; color:'#10b981';}
+    /* 推荐文案 */
+    function setRecommend(total){
+      let text='', color='';
+      if(total<2_000_000){ text='🚫 不推荐';        color='#e11d48'; }
+      else if(total<3_000_000){ text='⚠️ 谨慎';    color='#f59e0b'; }
+      else{ text='✅ 推荐刷';                      color='#10b981'; }
       recommendDom.textContent=text;
       recommendDom.style.color=color;
     }
 
-    /* ---------- 刷新逻辑 ---------- */
+    /* 主刷新逻辑 */
     async function refresh(){
-      if(loading)return;
-      loading=true;
-
-      const pool=POOLS[currentPoolName];
+      if(loading) return;
+      loading = true;
       spinner.classList.add('spin');
-      refreshBtn.disabled=true;
+      refreshBtn.disabled = true;
       refreshBtn.textContent='刷新中…';
-      skeleton(pool.tokens,currentPoolName==="USDT-KOGE"&&!mergeMode?pool.addresses.length:1,'');
+
+      const pool = POOLS[currentPoolName];
+      skeleton(pool.tokens, currentPoolName==='USDT-KOGE'&&!mergeMode?pool.addresses.length:1);
 
       try{
         await Promise.all(pool.tokens.map(ensureDecimals));
-        const prices=await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
-        let total=0;rowsBox.innerHTML='';
+        const prices = await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
 
-        if(currentPoolName==="USDT-KOGE"&&!mergeMode){
-          for(let j=0;j<pool.addresses.length;j++){
-            const addrBal=await getBalances(pool.tokens,[pool.addresses[j]]);
+        let total = 0;
+        rowsBox.innerHTML='';
+        const frag = document.createDocumentFragment();
+
+        const processRow = (token, human, usd, extra='')=>{
+          const row=document.createElement('div');
+          row.className='row';
+          row.style.setProperty('--stripe', token.color);
+          row.innerHTML=`
+            <div class="label">
+              <img class="token-icon" src="${token.logo}" referrerpolicy="no-referrer"
+                   onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
+              <span class="icon-fallback" style="display:none;background:${token.color}">${token.symbol[0]}</span>
+              ${token.symbol}${extra}
+            </div>
+            <div class="value">
+              <span class="amount-label">数量</span>
+              <span class="value-num" title="${human}">${fmtQty(human)}</span>
+              <span class="price-label">价值</span>
+              <span class="value-price">≈ $${usd.toLocaleString()} @ $${fmtPrice(prices[token.idx])}</span>
+            </div>`;
+          frag.appendChild(row);
+        };
+
+        if(currentPoolName==='USDT-KOGE' && !mergeMode){
+          for(let idx=0;idx<pool.addresses.length;idx++){
+            const bals = await getBalances(pool.tokens,[pool.addresses[idx]]);
             pool.tokens.forEach((t,i)=>{
-              const human=parseFloat(ethers.utils.formatUnits(addrBal[i],t.decimals));
-              const usd=Math.round(human*prices[i]); total+=usd;
-              const r=document.createElement('div');
-              r.className='row';r.style.setProperty('--stripe',t.color);
-              r.innerHTML=`
-                <div class="label">
-                  <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
-                       onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
-                  <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
-                  ${t.symbol} (${pool.labels[j]})
-                </div>
-                <div class="value">
-                  <span class="amount-label">数量</span>
-                  <span class="value-num" title="${human}">${fmtQty(human)}</span>
-                  <span class="price-label">价值</span>
-                  <span class="value-price">≈ $${usd.toLocaleString()} @ $${fmtPrice(prices[i])}</span>
-                </div>`;
-              rowsBox.appendChild(r);
+              t.idx=i;
+              const human = parseFloat(ethers.utils.formatUnits(bals[i], t.decimals));
+              const usd   = Math.round(human * prices[i]);
+              total += usd;
+              processRow(t, human, usd, ` (${pool.labels[idx]})`);
             });
           }
         }else{
-          const balances=await getBalances(pool.tokens,pool.addresses);
+          const bals = await getBalances(pool.tokens, pool.addresses);
           pool.tokens.forEach((t,i)=>{
-            const human=parseFloat(ethers.utils.formatUnits(balances[i],t.decimals));
-            const usd=Math.round(human*prices[i]); total+=usd;
-            const r=document.createElement('div');
-            r.className='row';r.style.setProperty('--stripe',t.color);
-            r.innerHTML=`
-              <div class="label">
-                <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
-                     onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
-                <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
-                ${t.symbol}
-              </div>
-              <div class="value">
-                <span class="amount-label">数量</span>
-                <span class="value-num" title="${human}">${fmtQty(human)}</span>
-                <span class="price-label">价值</span>
-                <span class="value-price">≈ $${usd.toLocaleString()} @ $${fmtPrice(prices[i])}</span>
-              </div>`;
-            rowsBox.appendChild(r);
+            t.idx=i;
+            const human = parseFloat(ethers.utils.formatUnits(bals[i], t.decimals));
+            const usd   = Math.round(human * prices[i]);
+            total += usd;
+            processRow(t, human, usd);
           });
         }
 
+        rowsBox.appendChild(frag);
         totalDom.textContent=`💰 总价值：$${total.toLocaleString()}`;
         setRecommend(total);
         timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
@@ -476,23 +492,43 @@
     }
 
     /* ---------- 事件绑定 ---------- */
-    poolSelect.onchange=()=>{
-      currentPoolName=poolSelect.value;
+    poolSelect.onchange = () => {
+      currentPoolName = poolSelect.value;
       initProvider();
       updatePortalLinks();
       updateMergeSwitch();
       refresh();
     };
-    mergeCb.onchange=()=>{mergeMode=mergeCb.checked;refresh()};
-    refreshBtn.onclick=refresh;
+    mergeCb.onchange   = () => { mergeMode = mergeCb.checked; refresh(); };
 
-    let timer=setInterval(refresh,CFG.INTERVAL);
-    autoCb.onchange=()=>{autoCb.checked?timer=setInterval(refresh,CFG.INTERVAL):clearInterval(timer)};
+    /* 刷新按钮防抖 500ms */
+    let btnTimer = 0;
+    refreshBtn.onclick = () => {
+      clearTimeout(btnTimer);
+      btnTimer = setTimeout(refresh, 500);
+    };
 
-    /* ---------- 初始化 ---------- */
+    /* 自动刷新 & visibilitychange */
+    let timer = setInterval(refresh, CFG.INTERVAL);
+    autoCb.onchange = () => {
+      autoCb.checked
+        ? (timer = setInterval(refresh, CFG.INTERVAL))
+        : clearInterval(timer);
+    };
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.hidden){
+        clearInterval(timer);
+      }else if(autoCb.checked){
+        refresh(); // 立即刷新
+        timer = setInterval(refresh, CFG.INTERVAL);
+      }
+    });
+
+    /* ---------- 初始启动 ---------- */
     updatePortalLinks();
     updateMergeSwitch();
     refresh();
+
   })();
   </script>
 </body>
