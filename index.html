@@ -137,10 +137,14 @@
   const applyDark=v=>{html.classList.toggle('dark',v);localStorage.setItem('darkMode',v?'1':'0');darkToggle.checked=v};
   darkToggle.onchange=()=>applyDark(darkToggle.checked);applyDark(saved==='1');
 
+  /* 并发锁：防止重复渲染 */
+  let loading = false;
+
   (async()=>{
+
     /* ---------- 池子配置 ---------- */
     const POOLS={
-      "ZKJ-KOGE":{
+      "ZKJ-KOGE":{ /* …保持不变… */ 
         tokens:[
           {symbol:'ZKJ',address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null},
           {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
@@ -149,15 +153,15 @@
         addresses:['0x099f84de4fb511e861ca8f635623eae409405873'],
         debank:'https://debank.com/profile/0x099f84de4fb511e861ca8f635623eae409405873'
       },
-      "USDT-KOGE":{
+      "USDT-KOGE":{ /* …保持不变… */
         tokens:[
           {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
           {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
         ],
         rpc:'https://bsc-dataseed.binance.org/',
         addresses:[
-          '0xcf59b8c8baa2dea520e3d549f97d4e49ade17057', // Pancake
-          '0x81c7294b66955824bc04acb642ae8dc58e6ce507'  // Uni
+          '0xcf59b8c8baa2dea520e3d549f97d4e49ade17057',
+          '0x81c7294b66955824bc04acb642ae8dc58e6ce507'
         ],
         labels:['Pancake','Uni']
       },
@@ -363,7 +367,7 @@
       }else if(totalUsd<3000000){
         text='⚠️ 谨慎';   color='#f59e0b';
       }else{
-        text='✅ 推荐刷'; color='#10b981';
+        text='✅ 推荐刷'; color:'#10b981';
       }
       recommendDom.textContent=text;
       recommendDom.style.color=color;
@@ -371,8 +375,14 @@
 
     /* ---------- 刷新逻辑 ---------- */
     async function refresh(){
+      /* 并发锁：上一轮没完成就直接返回 */
+      if (loading) return;
+      loading = true;
+
       const pool=POOLS[currentPoolName];
-      spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';
+      spinner.classList.add('spin');
+      refreshBtn.disabled=true;
+      refreshBtn.textContent='刷新中…';
       skeleton(pool.tokens,currentPoolName==="USDT-KOGE"&&!mergeMode?pool.addresses.length:1,'');
 
       try{
@@ -432,10 +442,18 @@
         setRecommend(total);
         timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
       }catch(err){
-        Toastify({text:'❌ 数据获取失败：'+err.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
-        totalDom.textContent='总价值获取失败'; recommendDom.textContent='';
+        Toastify({
+          text:'❌ 数据获取失败：'+err.message,
+          duration:3500,gravity:'top',close:true,
+          style:{background:'#e11d48'}
+        }).showToast();
+        totalDom.textContent='总价值获取失败';
+        recommendDom.textContent='';
       }finally{
-        spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';
+        spinner.classList.remove('spin');
+        refreshBtn.disabled=false;
+        refreshBtn.textContent='⟳ 刷新余额';
+        loading = false;   /* 解锁 */
       }
     }
 
