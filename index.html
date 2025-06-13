@@ -153,7 +153,7 @@ const POOLS={
       '0xcf59b8c8baa2dea520e3d549f97d4e49ade17057',
       '0x81c7294b66955824bc04acb642ae8dc58e6ce507'
     ],
-    labels:['Pancake','Uni']   /* 用于拆分模式下的额外标签 */
+    labels:['Pancake','Uni']
   },
   "USDT-TAIKO":{
     tokens:[
@@ -191,7 +191,6 @@ const POOLS={
     addresses:['0xd7af60112d7dfe0f914724e3407dd54424aaa19b'],
     debank:'https://debank.com/profile/0xd7af60112d7dfe0f914724e3407dd54424aaa19b'
   },
-  /* ---------- 新增 BNB-AB ---------- */
   "BNB-AB":{
     tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
@@ -237,11 +236,18 @@ initProvider();
 /* -------- 配置 & 缓存 -------- */
 const CFG={TIMEOUT:8000,RETRY:1,INTERVAL:60000,PRICE_CACHE:30000};
 const cache={},LS='P_';
-const getCached=k=>{if(cache[k]!=null) return cache[k];try{const {v,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');return Date.now()-ts<CFG.PRICE_CACHE?v:null;}catch{return null}};
+const getCached=k=>{
+  if(cache[k]!=null) return cache[k];
+  try{const {v,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');
+      return Date.now()-ts<CFG.PRICE_CACHE?v:null;}catch{return null}
+};
 const setCached=(k,v)=>{cache[k]=v;localStorage.setItem(LS+k,JSON.stringify({v,ts:Date.now()}));};
 
 /* -------- 价格 -------- */
-const STABLE_PRICE={'0x55d398326f99059ff775485246999027b3197955':1,'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1};
+const STABLE_PRICE={
+  '0x55d398326f99059ff775485246999027b3197955':1, // USDT
+  '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1  // USDC
+};
 async function fetchJSON(u,t=CFG.TIMEOUT,r=CFG.RETRY){
   for(let i=0;i<=r;i++){
     const c=new AbortController(),id=setTimeout(()=>c.abort(),t);
@@ -253,9 +259,11 @@ async function getPrice(addr){
   const a=addr.toLowerCase();if(a in STABLE_PRICE){setCached(a,1);return 1;}
   const c=getCached(a);if(c!==null) return c;
   const req1=()=>fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${a}`).then(j=>{
-    const p=(j.pairs||[]).find(x=>['USDT','USDC','BUSD'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);if(!p) throw 0;return +p.priceUsd;});
+    const p=(j.pairs||[]).find(x=>['USDT','USDC','BUSD'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
+    if(!p) throw 0;return +p.priceUsd;});
   const req2=()=>fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${a}`).then(j=>{
-    const p=(j.pairs||[]).find(x=>['USDT','USDC','BUSD'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);if(!p) throw 0;return +p.priceUsd;});
+    const p=(j.pairs||[]).find(x=>['USDT','USDC','BUSD'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
+    if(!p) throw 0;return +p.priceUsd;});
   const price=await Promise.any([req1(),req2()]);setCached(a,price);return price;
 }
 
@@ -302,7 +310,19 @@ function skeleton(tokens,repeat=1,labelPrefix=''){
 
 /* -------- Utils -------- */
 const fmtQty=n=>(n>=1?n.toLocaleString(undefined,{maximumFractionDigits:2}):n.toFixed(4));
-function setRecommend(t){let txt='',c='';if(t<2_000_000){txt='🚫 不推荐';c='#e11d48';}else if(t<3_000_000){txt='⚠️ 谨慎';c='#f59e0b';}else{txt='✅ 推荐刷';c='#10b981';}recommendDom.textContent=txt;recommendDom.style.color=c;}
+function setRecommend(totalUsd,minRatio){
+  let txt='',c='';
+  if(minRatio<5){
+    txt='⚠️ 谨慎';c='#f59e0b';
+  }else if(totalUsd<2_000_000){
+    txt='🚫 不推荐';c='#e11d48';
+  }else if(totalUsd<3_000_000){
+    txt='⚠️ 谨慎';c='#f59e0b';
+  }else{
+    txt='✅ 推荐刷';c='#10b981';
+  }
+  recommendDom.textContent=txt;recommendDom.style.color=c;
+}
 
 /* -------- 渲染行 -------- */
 function renderRows(tokens,humans,usds,extras){
@@ -356,7 +376,9 @@ async function refresh(){
       });
     }
     const totalUsd=renderRows(pool.tokens,humans,usds,extras);
-    totalDom.textContent=`💰 总价值：$${totalUsd.toLocaleString()}`;setRecommend(totalUsd);
+    const minRatio=Math.min(...usds.map(u=>u/totalUsd*100));
+    totalDom.textContent=`💰 总价值：$${totalUsd.toLocaleString()}`;
+    setRecommend(totalUsd,minRatio);
     timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
   }catch(e){
     Toastify({text:'❌ 数据获取失败：'+e.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
@@ -369,7 +391,8 @@ async function refresh(){
 /* -------- 传送门按钮 & Merge 开关 -------- */
 function clearPortalButtons(){document.querySelectorAll('.debank-btn').forEach(el=>el.remove());}
 function updatePortalLinks(){
-  clearPortalButtons();const p=POOLS[currentPoolName];
+  clearPortalButtons();
+  const p=POOLS[currentPoolName];
   if(currentPoolName==='USDT-KOGE'){
     ['Pancake','Uni'].forEach((l,i)=>{
       const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
@@ -380,7 +403,8 @@ function updatePortalLinks(){
     });
   }else if(p.debank){
     const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';btn.href=p.debank;
-    btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';portalWrap.insertBefore(btn,portalWrap.lastElementChild);
+    btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
+    portalWrap.insertBefore(btn,portalWrap.lastElementChild);
   }
 }
 function updateMergeSwitch(){mergeWrap.style.display=currentPoolName==='USDT-KOGE'?'flex':'none';}
