@@ -107,7 +107,7 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
 
   <!-- ===== 列表 / 总价值 ===== -->
   <div id="rows" class="cards"></div>
-  <div class="total-wrap">
+  <div class="total-wrap" id="totalWrap">
     <span id="totalValue" class="total">💰</span>
     <span id="recommend" class="badge"></span>
   </div>
@@ -208,6 +208,7 @@ const poolSelect=document.getElementById('poolSelect'),
       mergeWrap=document.getElementById('mergeWrap'),
       mergeCb=document.getElementById('mergeCb'),
       rowsBox=document.getElementById('rows'),
+      totalWrap=document.getElementById('totalWrap'),
       totalDom=document.getElementById('totalValue'),
       recommendDom=document.getElementById('recommend'),
       timeDom=document.getElementById('updateTime'),
@@ -218,6 +219,9 @@ const poolSelect=document.getElementById('poolSelect'),
 Object.keys(POOLS).forEach(n=>{
   const o=document.createElement('option');o.value=n;o.textContent=n;poolSelect.appendChild(o);
 });
+const allOpt=document.createElement('option');
+allOpt.value='__ALL__';allOpt.textContent='全部池子';poolSelect.appendChild(allOpt);
+
 let currentPoolName=Object.keys(POOLS)[0];poolSelect.value=currentPoolName;
 let mergeMode=true;
 
@@ -227,7 +231,9 @@ let provider,multicall;
 const MULTICALL_ABI=['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'];
 const ERC20_ABI   =['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
 function initProvider(){
-  const url=POOLS[currentPoolName].rpc;
+  const url=currentPoolName==='__ALL__'
+    ? POOLS[Object.keys(POOLS)[0]].rpc
+    : POOLS[currentPoolName].rpc;
   provider=providers[url]??=new ethers.providers.JsonRpcProvider(url);
   multicall=new ethers.Contract('0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb',MULTICALL_ABI,provider);
 }
@@ -245,8 +251,8 @@ const setCached=(k,v)=>{cache[k]=v;localStorage.setItem(LS+k,JSON.stringify({v,t
 
 /* -------- 价格 -------- */
 const STABLE_PRICE={
-  '0x55d398326f99059ff775485246999027b3197955':1, // USDT
-  '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1  // USDC
+  '0x55d398326f99059ff775485246999027b3197955':1,
+  '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1
 };
 async function fetchJSON(u,t=CFG.TIMEOUT,r=CFG.RETRY){
   for(let i=0;i<=r;i++){
@@ -290,13 +296,14 @@ function skeleton(tokens,repeat=1,labelPrefix=''){
   const frag=document.createDocumentFragment();
   for(let r=0;r<repeat;r++){
     tokens.forEach(t=>{
-      const d=document.createElement('div');d.className='row';d.style.setProperty('--stripe',t.color);
+      const d=document.createElement('div');d.className='row';d.style.setProperty('--stripe',t.color||'#ccc');
       d.innerHTML=`
         <div class="label">
-          <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
-               onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
-          <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
-          ${labelPrefix}${t.symbol}
+          <div style="display:flex;gap:4px">
+            <img class="token-icon" src="${t.logo||''}" referrerpolicy="no-referrer"
+                 onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
+          </div>
+          ${labelPrefix}${t.symbol||''}
         </div>
         <div class="value">
           <span class="amount-label">数量</span><div class="skeleton" style="width:120px;height:20px"></div>
@@ -310,6 +317,7 @@ function skeleton(tokens,repeat=1,labelPrefix=''){
 
 /* -------- Utils -------- */
 const fmtQty=n=>(n>=1?n.toLocaleString(undefined,{maximumFractionDigits:2}):n.toFixed(4));
+const fmtM  =n=>(n/1_000_000).toLocaleString(undefined,{maximumFractionDigits:1});
 function setRecommend(totalUsd,minRatio){
   let txt='',c='';
   if(minRatio<5){
@@ -321,7 +329,7 @@ function setRecommend(totalUsd,minRatio){
   }else{
     txt='✅ 推荐刷';c='#10b981';
   }
-  recommendDom.textContent=txt;recommendDom.style.color=c;
+  return {txt,color:c};
 }
 
 /* -------- 渲染行 -------- */
@@ -351,38 +359,104 @@ function renderRows(tokens,humans,usds,extras){
   rowsBox.appendChild(frag);return total;
 }
 
+/* ======= 渲染 ALL 视图（去掉占比 + 双 Logo） ======= */
+function renderAllView(poolDataList){
+  rowsBox.innerHTML='';
+  const frag=document.createDocumentFragment();
+  poolDataList.forEach(p=>{
+    const rec=setRecommend(p.totalUsd,p.minRatio);
+    const logoTwo=`
+      <img class="token-icon" src="${p.tokens[0].logo}" referrerpolicy="no-referrer"
+           onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">
+      <img class="token-icon" src="${p.tokens[1].logo}" referrerpolicy="no-referrer"
+           onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">`;
+    const row=document.createElement('div');row.className='row';
+    row.style.setProperty('--stripe',p.tokens[0].color);
+    row.innerHTML=`
+      <div class="label">
+        <div style="display:flex;gap:4px">${logoTwo}</div>
+        ${p.name} <span style="margin-left:6px;color:${rec.color}">${rec.txt}</span>
+      </div>
+      <div class="value">
+        <span class="price-label">价值</span>
+        <span class="value-price">≈ $${fmtM(p.totalUsd)}M</span>
+      </div>`;
+    frag.appendChild(row);
+  });
+  rowsBox.appendChild(frag);
+}
+
 /* -------- Refresh -------- */
 async function refresh(){
   if(loading) return;loading=true;spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';
-  const pool=POOLS[currentPoolName];
-  skeleton(pool.tokens,currentPoolName==='USDT-KOGE'&&!mergeMode?pool.addresses.length:1);
-  try{
-    await Promise.all(pool.tokens.map(ensureDecimals));
-    const prices=await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
-    const humans=[],usds=[],extras=[];
-    if(currentPoolName==='USDT-KOGE'&&!mergeMode){
-      for(let idx=0;idx<pool.addresses.length;idx++){
-        const bals=await getBalances(pool.tokens,[pool.addresses[idx]]);
+
+  if(currentPoolName!=='__ALL__'){ /* 单池逻辑保持不变 */ 
+    const pool=POOLS[currentPoolName];
+    skeleton(pool.tokens,currentPoolName==='USDT-KOGE'&&!mergeMode?pool.addresses.length:1);
+    try{
+      await Promise.all(pool.tokens.map(ensureDecimals));
+      const prices=await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
+      const humans=[],usds=[],extras=[];
+      if(currentPoolName==='USDT-KOGE'&&!mergeMode){
+        for(let idx=0;idx<pool.addresses.length;idx++){
+          const bals=await getBalances(pool.tokens,[pool.addresses[idx]]);
+          pool.tokens.forEach((t,i)=>{
+            const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
+            humans.push(h);usds.push(Math.round(h*prices[i]));extras.push(` (${pool.labels[idx]})`);
+          });
+        }
+      }else{
+        const bals=await getBalances(pool.tokens,pool.addresses);
         pool.tokens.forEach((t,i)=>{
           const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
-          humans.push(h);usds.push(Math.round(h*prices[i]));extras.push(` (${pool.labels[idx]})`);
+          humans.push(h);usds.push(Math.round(h*prices[i]));extras.push('');
         });
       }
-    }else{
-      const bals=await getBalances(pool.tokens,pool.addresses);
-      pool.tokens.forEach((t,i)=>{
+      const totalUsd=renderRows(pool.tokens,humans,usds,extras);
+      const minRatio=Math.min(...usds.map(u=>u/totalUsd*100));
+      totalDom.textContent=`💰 总价值：$${totalUsd.toLocaleString()}`;
+      const rec=setRecommend(totalUsd,minRatio);
+      recommendDom.textContent=rec.txt;recommendDom.style.color=rec.color;
+      totalWrap.style.display='flex';
+      timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
+    }catch(e){
+      Toastify({text:'❌ 数据获取失败：'+e.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
+      totalDom.textContent='总价值获取失败';recommendDom.textContent='';
+    }finally{
+      spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';loading=false;
+    }
+    return;
+  }
+
+  /* === 全部池子模式 === */
+  skeleton([{symbol:'加载',logo:'',color:'#ccc'}]);
+  try{
+    const poolData=[];
+    for(const name of Object.keys(POOLS)){
+      const p=POOLS[name];
+      await Promise.all(p.tokens.map(ensureDecimals));
+      const prices=await Promise.all(p.tokens.map(t=>getPrice(t.address)));
+      const bals=await getBalances(p.tokens,p.addresses);
+      const totalUsd=p.tokens.reduce((s,t,i)=>{
         const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
-        humans.push(h);usds.push(Math.round(h*prices[i]));extras.push('');
+        return s+h*prices[i];
+      },0);
+      const perTokenUsd=p.tokens.map((t,i)=>{
+        const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
+        return h*prices[i];
+      });
+      poolData.push({
+        name,
+        tokens:p.tokens,
+        totalUsd:Math.round(totalUsd),
+        minRatio:Math.min(...perTokenUsd.map(u=>u/totalUsd*100))
       });
     }
-    const totalUsd=renderRows(pool.tokens,humans,usds,extras);
-    const minRatio=Math.min(...usds.map(u=>u/totalUsd*100));
-    totalDom.textContent=`💰 总价值：$${totalUsd.toLocaleString()}`;
-    setRecommend(totalUsd,minRatio);
+    renderAllView(poolData);
+    totalWrap.style.display='none';
     timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
   }catch(e){
     Toastify({text:'❌ 数据获取失败：'+e.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
-    totalDom.textContent='总价值获取失败';recommendDom.textContent='';
   }finally{
     spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';loading=false;
   }
@@ -392,6 +466,7 @@ async function refresh(){
 function clearPortalButtons(){document.querySelectorAll('.debank-btn').forEach(el=>el.remove());}
 function updatePortalLinks(){
   clearPortalButtons();
+  if(currentPoolName==='__ALL__') return;
   const p=POOLS[currentPoolName];
   if(currentPoolName==='USDT-KOGE'){
     ['Pancake','Uni'].forEach((l,i)=>{
@@ -407,7 +482,9 @@ function updatePortalLinks(){
     portalWrap.insertBefore(btn,portalWrap.lastElementChild);
   }
 }
-function updateMergeSwitch(){mergeWrap.style.display=currentPoolName==='USDT-KOGE'?'flex':'none';}
+function updateMergeSwitch(){
+  mergeWrap.style.display=(currentPoolName==='USDT-KOGE'&&currentPoolName!=='__ALL__')?'flex':'none';
+}
 
 /* -------- 事件绑定 -------- */
 poolSelect.onchange=()=>{currentPoolName=poolSelect.value;initProvider();updatePortalLinks();updateMergeSwitch();refresh();};
