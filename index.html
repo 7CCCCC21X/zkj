@@ -167,7 +167,7 @@ const POOLS={
   "USDT-ZKJ":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
-      {symbol:'ZKJ',address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null}
+      {symbol:'ZKJ', address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null}
     ],
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x5968feacba91d55010975e0cfe8acfc32664ad33'],
@@ -200,7 +200,6 @@ const POOLS={
     addresses:['0xb05500ea96db17d28cd0eb30bcb797708f279d36'],
     debank:'https://debank.com/profile/0xb05500ea96db17d28cd0eb30bcb797708f279d36'
   },
-  /* ===== 新增 USDT-ZRC ===== */
   "USDT-ZRC":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -209,6 +208,17 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xe9388678f0542d5406145c3db85b5b754daff085'],
     debank:'https://debank.com/profile/0xe9388678f0542d5406145c3db85b5b754daff085'
+  },
+
+  /* ========== 新增 USDT-SERAPH ========== */
+  "USDT-SERAPH":{
+    tokens:[
+      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
+      {symbol:'SERAPH',address:'0xd6b48ccf41a62eb3891e58d0f006b19b01d50cca',logo:'./seraph.png',color:'#d32f2f',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0xd5b642646a6e40090d5d61ca11a78ee2f6e0ef14'],
+    debank:'https://debank.com/profile/0xd5b642646a6e40090d5d61ca11a78ee2f6e0ef14'
   }
 };
 
@@ -369,7 +379,7 @@ function renderRows(tokens,humans,usds,extras){
   rowsBox.appendChild(frag);return total;
 }
 
-/* ======= 渲染 ALL 视图（去掉占比 + 双 Logo） ======= */
+/* ======= 渲染 ALL 视图 ======= */
 function renderAllView(poolDataList){
   rowsBox.innerHTML='';
   const frag=document.createDocumentFragment();
