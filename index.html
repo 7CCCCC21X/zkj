@@ -30,9 +30,7 @@ body{
   width:100%;max-width:680px;display:flex;flex-wrap:wrap;
   gap:10px;align-items:center;justify-content:flex-start;
 }
-@media (min-width:560px){
-  .topbar{justify-content:space-between;}
-}
+@media (min-width:560px){.topbar{justify-content:space-between;}}
 
 .title{
   font-size:24px;font-weight:700;color:var(--c-primary);
@@ -130,102 +128,70 @@ const saved=localStorage.getItem('darkMode');
 const applyDark=v=>{html.classList.toggle('dark',v);localStorage.setItem('darkMode',v?'1':'0');darkToggle.checked=v;};
 darkToggle.onchange=()=>applyDark(darkToggle.checked);applyDark(saved==='1');
 
-/* -------- 并发锁 -------- */
-let loading=false;
+/* -------- 并发锁 + 防并发序号 -------- */
+let loading=false,refreshId=0;
 
 /* -------- 池子配置 -------- */
 const POOLS={
-  "USDT-KOGE":{
-    tokens:[
+  "USDT-KOGE":{tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:[
-      '0xcf59b8c8baa2dea520e3d549f97d4e49ade17057',
-      '0x81c7294b66955824bc04acb642ae8dc58e6ce507'
-    ]
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0xcf59b8c8baa2dea520e3d549f97d4e49ade17057']
   },
-  "USDT-TAIKO":{
-    tokens:[
+  "USDT-TAIKO":{tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'TAIKO',address:'0x30c60b20c25b2810ca524810467a0c342294fc61',logo:'./taiko.png',color:'#8e44ad',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0xbe77ac86750fb0359fa623e63e7f009979bb701c'],
-    debank:'https://debank.com/profile/0xbe77ac86750fb0359fa623e63e7f009979bb701c'
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0xbe77ac86750fb0359fa623e63e7f009979bb701c']
   },
-  "USDT-ZKJ":{
-    tokens:[
+  "USDT-ZKJ":{tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'ZKJ', address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x5968feacba91d55010975e0cfe8acfc32664ad33'],
-    debank:'https://debank.com/profile/0x5968feacba91d55010975e0cfe8acfc32664ad33'
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x5968feacba91d55010975e0cfe8acfc32664ad33']
   },
-  "USDC-SQD":{
-    tokens:[
+  "USDC-SQD":{tokens:[
       {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
       {symbol:'SQD', address:'0xe50e3d1a46070444f44df911359033f2937fcc13',logo:'./sqd.png', color:'#f06292',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x43256d0dcc2571e564311edb6d7e8f076a72fc46'],
-    debank:'https://debank.com/profile/0x43256d0dcc2571e564311edb6d7e8f076a72fc46'
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x43256d0dcc2571e564311edb6d7e8f076a72fc46']
   },
-  "USDT-AB":{
-    tokens:[
+  "USDT-AB":{tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'AB',  address:'0x95034f653d5d161890836ad2b6b8cc49d14e029a',logo:'./ab.png',color:'#ffb700',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0xd7af60112d7dfe0f914724e3407dd54424aaa19b'],
-    debank:'https://debank.com/profile/0xd7af60112d7dfe0f914724e3407dd54424aaa19b'
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0xd7af60112d7dfe0f914724e3407dd54424aaa19b']
   },
-  "BNB-AB":{
-    tokens:[
+  "BNB-AB":{tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
       {symbol:'AB', address:'0x95034f653d5d161890836ad2b6b8cc49d14e029a',logo:'./ab.png', color:'#ffb700',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0xb05500ea96db17d28cd0eb30bcb797708f279d36'],
-    debank:'https://debank.com/profile/0xb05500ea96db17d28cd0eb30bcb797708f279d36'
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0xb05500ea96db17d28cd0eb30bcb797708f279d36']
   },
-  "USDT-ZRC":{
-    tokens:[
+  "USDT-ZRC":{tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'ZRC', address:'0xdac991621fd8048d9f235324780abd6c3ad26421',logo:'./zrc.png', color:'#9c27b0',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0xe9388678f0542d5406145c3db85b5b754daff085'],
-    debank:'https://debank.com/profile/0xe9388678f0542d5406145c3db85b5b754daff085'
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0xe9388678f0542d5406145c3db85b5b754daff085']
   },
-  "USDT-SERAPH":{
-    tokens:[
+  "USDT-SERAPH":{tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'SERAPH',address:'0xd6b48ccf41a62eb3891e58d0f006b19b01d50cca',logo:'./seraph.png',color:'#d32f2f',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0xd5b642646a6e40090d5d61ca11a78ee2f6e0ef14'],
-    debank:'https://debank.com/profile/0xd5b642646a6e40090d5d61ca11a78ee2f6e0ef14'
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0xd5b642646a6e40090d5d61ca11a78ee2f6e0ef14']
   },
-  "BNB-MYX":{
-    tokens:[
+  "BNB-MYX":{tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
       {symbol:'MYX',address:'0xd82544bf0dfe8385ef8fa34d67e6e4940cc63e16',logo:'./myx.png',color:'#00bcd4',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x6ec31af1bb9a72aacec12e4ded508861b05f4503'],
-    debank:'https://debank.com/profile/0x6ec31af1bb9a72aacec12e4ded508861b05f4503'
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x6ec31af1bb9a72aacec12e4ded508861b05f4503']
   },
-  "USDT-BR":{
-    tokens:[
+  "USDT-BR":{tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'BR', address:'0xff7d6a96ae471bbcd7713af9cb1feeb16cf56b41',logo:'./br.png',color:'#2196f3',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x380aadf63d84d3a434073f1d5d95f02fb23d5228'],
-    debank:'https://debank.com/profile/0x380aadf63d84d3a434073f1d5d95f02fb23d5228'
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x380aadf63d84d3a434073f1d5d95f02fb23d5228']
   }
 };
 
@@ -241,6 +207,7 @@ const poolSelect=document.getElementById('poolSelect'),
       refreshBtn=document.getElementById('refreshBtn'),
       portalWrap=document.getElementById('portalWrap');
 
+/* 填充下拉列表 */
 Object.keys(POOLS).forEach(name=>{
   const o=document.createElement('option');o.value=name;o.textContent=name;poolSelect.appendChild(o);
 });
@@ -249,11 +216,9 @@ const allOpt=document.createElement('option');allOpt.value='__ALL__';allOpt.text
 let currentPoolName=Object.keys(POOLS)[0];poolSelect.value=currentPoolName;
 
 /* -------- Provider & Multicall -------- */
-const providers={},MULTICALL_ABI=['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'],ERC20_ABI=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];let provider,multicall;
+const providers={},MULTICALL_ABI=['function aggregate(tuple(address target,bytes callData)[]) view returns(uint256,bytes[])'],ERC20_ABI=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];let provider,multicall;
 function initProvider(){
-  const url=currentPoolName==='__ALL__'
-    ? POOLS[Object.keys(POOLS)[0]].rpc
-    : POOLS[currentPoolName].rpc;
+  const url=currentPoolName==='__ALL__'?POOLS[Object.keys(POOLS)[0]].rpc:POOLS[currentPoolName].rpc;
   provider=providers[url]??=new ethers.providers.JsonRpcProvider(url);
   multicall=new ethers.Contract('0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb',MULTICALL_ABI,provider);
 }
@@ -277,8 +242,7 @@ async function fetchJSON(u,t=CFG.TIMEOUT,r=CFG.RETRY){
   for(let i=0;i<=r;i++){
     const c=new AbortController(),id=setTimeout(()=>c.abort(),t);
     try{const res=await fetch(u,{signal:c.signal});clearTimeout(id);
-        if(!res.ok) throw 0;return res.json();}
-    catch(e){if(i===r) throw e;await new Promise(s=>setTimeout(s,500));}
+        if(!res.ok) throw 0;return res.json();}catch(e){if(i===r) throw e;await new Promise(s=>setTimeout(s,500));}
   }
 }
 async function getPrice(addr){
@@ -345,71 +309,99 @@ function setRecommend(totalUsd,minRatio){
   return {txt,color:c};
 }
 
-/* -------- 渲染行 -------- */
-function renderRows(tokens,humans,usds){
+/* -------- 渲染行（全量 or 局部更新） -------- */
+function updateRows(tokens,humans,usds,isAuto){
   const total=usds.reduce((a,b)=>a+b,0);
-  rowsBox.innerHTML='';
-  const f=document.createDocumentFragment();
-  tokens.forEach((t,i)=>{
-    const ratio=((usds[i]/total)*100).toFixed(1);
-    const row=document.createElement('div');row.className='row';row.style.setProperty('--stripe',t.color);
-    row.innerHTML=`
-      <div class="label">
-        <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
-             onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
-        <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
-        ${t.symbol}
-      </div>
-      <div class="value">
-        <span class="amount-label">数量</span>
-        <span class="value-num">${fmtQty(humans[i])}</span>
-        <span class="price-label">价值</span>
-        <span class="value-price">≈ $${usds[i].toLocaleString()}</span>
-        <span class="ratio-label">比例</span>
-        <span class="ratio-value">${ratio}%</span>
-      </div>`;f.appendChild(row);
-  });
-  rowsBox.appendChild(f);return total;
+  if(!isAuto || rowsBox.childElementCount!==tokens.length){
+    /* 全量重绘 */
+    rowsBox.innerHTML='';
+    const f=document.createDocumentFragment();
+    tokens.forEach((t,i)=>{
+      const ratio=((usds[i]/total)*100).toFixed(1);
+      const row=document.createElement('div');row.className='row';row.dataset.symbol=t.symbol;
+      row.style.setProperty('--stripe',t.color);
+      row.innerHTML=`
+        <div class="label">
+          <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
+               onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
+          <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
+          ${t.symbol}
+        </div>
+        <div class="value">
+          <span class="amount-label">数量</span>
+          <span class="value-num">${fmtQty(humans[i])}</span>
+          <span class="price-label">价值</span>
+          <span class="value-price">≈ $${usds[i].toLocaleString()}</span>
+          <span class="ratio-label">比例</span>
+          <span class="ratio-value">${ratio}%</span>
+        </div>`;f.appendChild(row);
+    });
+    rowsBox.appendChild(f);
+  }else{
+    /* 局部更新数值防闪烁 */
+    tokens.forEach((t,i)=>{
+      const row=rowsBox.querySelector(`.row[data-symbol="${t.symbol}"]`);
+      if(!row) return;
+      row.querySelector('.value-num').textContent=fmtQty(humans[i]);
+      row.querySelector('.value-price').textContent='≈ $'+usds[i].toLocaleString();
+      row.querySelector('.ratio-value').textContent=((usds[i]/total)*100).toFixed(1)+'%';
+    });
+  }
+  return total;
 }
 
 /* ======= 渲染 ALL 视图 ======= */
-function renderAllView(poolDataList){
-  /* 按流动性余额降序 */
+function renderAllView(poolDataList,isAuto){
+  /* 排序 */
   poolDataList.sort((a,b)=>b.totalUsd-a.totalUsd);
-  rowsBox.innerHTML='';
-  const f=document.createDocumentFragment();
-  poolDataList.forEach(p=>{
-    const rec=setRecommend(p.totalUsd,p.minRatio);
-    const logoTwo=`
-      <img class="token-icon" src="${p.tokens[0].logo}" referrerpolicy="no-referrer"
-           onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">
-      <img class="token-icon" src="${p.tokens[1].logo}" referrerpolicy="no-referrer"
-           onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">`;
-    const row=document.createElement('div');row.className='row';row.style.setProperty('--stripe',p.tokens[0].color);
-    row.innerHTML=`
-      <div class="label">
-        <div style="display:flex;gap:4px">${logoTwo}</div>
-        ${p.name} <span style="margin-left:6px;color:${rec.color}">${rec.txt}</span>
-      </div>
-      <div class="value">
-        <span class="price-label">价值</span>
-        <span class="value-price">≈ $${fmtM(p.totalUsd)}M</span>
-      </div>`;f.appendChild(row);
-  });
-  rowsBox.appendChild(f);
+  if(!isAuto){
+    rowsBox.innerHTML='';
+    const f=document.createDocumentFragment();
+    poolDataList.forEach(p=>{
+      const rec=setRecommend(p.totalUsd,p.minRatio);
+      const logoTwo=`
+        <img class="token-icon" src="${p.tokens[0].logo}" referrerpolicy="no-referrer"
+             onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">
+        <img class="token-icon" src="${p.tokens[1].logo}" referrerpolicy="no-referrer"
+             onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">`;
+      const row=document.createElement('div');row.className='row';row.style.setProperty('--stripe',p.tokens[0].color);
+      row.innerHTML=`
+        <div class="label">
+          <div style="display:flex;gap:4px">${logoTwo}</div>
+          ${p.name} <span style="margin-left:6px;color:${rec.color}">${rec.txt}</span>
+        </div>
+        <div class="value">
+          <span class="price-label">价值</span>
+          <span class="value-price">≈ $${fmtM(p.totalUsd)}M</span>
+        </div>`;f.appendChild(row);
+    });
+    rowsBox.appendChild(f);
+  }else{
+    /* 自动刷新时只更新价值字段避免闪烁 */
+    poolDataList.forEach(p=>{
+      const row=[...rowsBox.children].find(r=>r.querySelector('.label')?.textContent.includes(p.name));
+      if(row){
+        row.querySelector('.value-price').textContent='≈ $'+fmtM(p.totalUsd)+'M';
+      }
+    });
+  }
 }
 
 /* -------- Refresh (支持 isAuto) -------- */
 async function refresh(isAuto=false){
-  if(loading) return;loading=true;
-  spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';
+  if(loading) return;loading=true;refreshId++;
+  const myId=refreshId;           // 本次请求编号
+  if(!isAuto){spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';}
 
-  const showSkeleton=!isAuto;
+  /* 显示 skeleton 仅在手动刷新或切池时首次展示 */
+  if(!isAuto){
+    if(currentPoolName!=='__ALL__') skeleton(POOLS[currentPoolName].tokens);
+    else skeleton([{symbol:'加载',logo:'',color:'#ccc'}]);
+  }
 
-  if(currentPoolName!=='__ALL__'){     /* 单池 */
-    const pool=POOLS[currentPoolName];
-    if(showSkeleton) skeleton(pool.tokens);
-    try{
+  try{
+    if(currentPoolName!=='__ALL__'){     /* 单池 */
+      const pool=POOLS[currentPoolName];
       await Promise.all(pool.tokens.map(ensureDecimals));
       const prices=await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
       const bals=await getBalances(pool.tokens,pool.addresses);
@@ -418,18 +410,14 @@ async function refresh(isAuto=false){
         const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
         humans.push(h);usds.push(Math.round(h*prices[i]));
       });
-      const totalUsd=renderRows(pool.tokens,humans,usds);
+      if(myId!==refreshId) return;      // 如果已切池，丢弃结果
+      const totalUsd=updateRows(pool.tokens,humans,usds,isAuto);
       const minRatio=Math.min(...usds.map(u=>u/totalUsd*100));
       totalDom.textContent=`💰 总价值：$${totalUsd.toLocaleString()}`;
-      const rec=setRecommend(totalUsd,minRatio);recommendDom.textContent=rec.txt;recommendDom.style.color=rec.color;
+      const rec=setRecommend(totalUsd,minRatio);
+      recommendDom.textContent=rec.txt;recommendDom.style.color=rec.color;
       totalWrap.style.display='flex';
-      timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
-    }catch(e){
-      Toastify({text:'❌ 数据获取失败：'+e.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
-    }
-  }else{                              /* 全部池子 */
-    if(showSkeleton) skeleton([{symbol:'加载',logo:'',color:'#ccc'}]);
-    try{
+    }else{                              /* 全部池子 */
       const poolData=[];
       for(const name of Object.keys(POOLS)){
         const p=POOLS[name];
@@ -442,15 +430,17 @@ async function refresh(isAuto=false){
           const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return h*prices[i];});
         poolData.push({name,tokens:p.tokens,totalUsd:Math.round(totalUsd),minRatio:Math.min(...perTokenUsd.map(u=>u/totalUsd*100))});
       }
-      renderAllView(poolData);
+      if(myId!==refreshId) return;
+      renderAllView(poolData,isAuto);
       totalWrap.style.display='none';
-      timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
-    }catch(e){
-      Toastify({text:'❌ 数据获取失败：'+e.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
     }
+    timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
+  }catch(e){
+    Toastify({text:'❌ 数据获取失败：'+(e.message||e),duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
+  }finally{
+    if(!isAuto){spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';}
+    loading=false;
   }
-
-  spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';loading=false;
 }
 
 /* -------- 传送门按钮 -------- */
@@ -459,7 +449,7 @@ function updatePortalLinks(){
   clearPortalButtons();
   if(currentPoolName==='__ALL__') return;
   const p=POOLS[currentPoolName];
-  if(currentPoolName==='USDT-KOGE'){      /* 仅 Pancake */
+  if(currentPoolName==='USDT-KOGE'){
     const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
     btn.href='https://debank.com/profile/0xcf59b8c8baa2dea520e3d549f97d4e49ade17057';
     btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
@@ -472,13 +462,15 @@ function updatePortalLinks(){
 }
 
 /* -------- 事件绑定 -------- */
-poolSelect.onchange=()=>{currentPoolName=poolSelect.value;initProvider();updatePortalLinks();refresh(false);};
-let btnTimer=0;refreshBtn.onclick=()=>{clearTimeout(btnTimer);btnTimer=setTimeout(()=>refresh(false),500);};
-let timer=setInterval(()=>refresh(true),CFG.INTERVAL);
-autoCb.onchange=()=>{autoCb.checked?timer=setInterval(()=>refresh(true),CFG.INTERVAL):clearInterval(timer);};
+poolSelect.onchange=()=>{
+  currentPoolName=poolSelect.value;initProvider();updatePortalLinks();refresh(false);
+};
+let manualTimer=0;refreshBtn.onclick=()=>{clearTimeout(manualTimer);manualTimer=setTimeout(()=>refresh(false),300);};
+let autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL);
+autoCb.onchange=()=>{autoCb.checked?autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL):clearInterval(autoTimer);};
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){clearInterval(timer);}
-  else if(autoCb.checked){refresh(true);timer=setInterval(()=>refresh(true),CFG.INTERVAL);}
+  if(document.hidden){clearInterval(autoTimer);}
+  else if(autoCb.checked){refresh(true);autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL);}
 });
 
 /* -------- 初始化 -------- */
