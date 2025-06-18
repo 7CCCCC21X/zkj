@@ -238,24 +238,45 @@ const STABLE_PRICE={
   '0x55d398326f99059ff775485246999027b3197955':1,
   '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1
 };
+
+/* ★ 新增：允许 WBNB 作为报价币 */
+const QUOTE_OK=['USDT','USDC','BUSD','WBNB'];
+
 async function fetchJSON(u,t=CFG.TIMEOUT,r=CFG.RETRY){
   for(let i=0;i<=r;i++){
     const c=new AbortController(),id=setTimeout(()=>c.abort(),t);
-    try{const res=await fetch(u,{signal:c.signal});clearTimeout(id);
-        if(!res.ok) throw 0;return res.json();}catch(e){if(i===r) throw e;await new Promise(s=>setTimeout(s,500));}
+    try{
+      const res=await fetch(u,{signal:c.signal});clearTimeout(id);
+      if(!res.ok) throw 0;
+      return res.json();
+    }catch(e){
+      if(i===r) throw e;
+      await new Promise(s=>setTimeout(s,500));
+    }
   }
 }
+
 async function getPrice(addr){
   const a=addr.toLowerCase();
   if(a in STABLE_PRICE){setCached(a,1);return 1;}
   const cached=getCached(a);if(cached!==null) return cached;
-  const req1=()=>fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${a}`).then(j=>{
-    const p=(j.pairs||[]).find(x=>['USDT','USDC','BUSD'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
-    if(!p) throw 0;return +p.priceUsd;});
-  const req2=()=>fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${a}`).then(j=>{
-    const p=(j.pairs||[]).find(x=>['USDT','USDC','BUSD'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
-    if(!p) throw 0;return +p.priceUsd;});
-  const price=await Promise.any([req1(),req2()]);setCached(a,price);return price;
+
+  const request=uri=>fetchJSON(uri).then(j=>{
+    const p=(j.pairs||[]).find(x=>QUOTE_OK.includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
+    if(!p) throw 0;
+    return +p.priceUsd;
+  });
+
+  try{
+    const price=await Promise.any([
+      request(`https://api.dexscreener.com/latest/dex/tokens/${a}`),
+      request(`https://api.dexscreener.com/latest/dex/search/?q=${a}`)
+    ]);
+    setCached(a,price);return price;
+  }catch{
+    /* 软降级：无法取价返回 0 */
+    setCached(a,0);return 0;
+  }
 }
 
 /* -------- decimals & balance -------- */
@@ -301,6 +322,7 @@ function skeleton(tokens){
 const fmtQty=n=>(n>=1?n.toLocaleString(undefined,{maximumFractionDigits:2}):n.toFixed(4));
 const fmtM  =n=>(n/1_000_000).toLocaleString(undefined,{maximumFractionDigits:1});
 function setRecommend(totalUsd,minRatio){
+  if(totalUsd===0) return {txt:'❓ 未定价',color:'#f59e0b'};
   let txt='',c='';
   if(minRatio<5){txt='⚠️ 谨慎';c='#f59e0b';}
   else if(totalUsd<1_500_000){txt='🚫 不推荐';c='#e11d48';}
@@ -313,11 +335,10 @@ function setRecommend(totalUsd,minRatio){
 function updateRows(tokens,humans,usds,isAuto){
   const total=usds.reduce((a,b)=>a+b,0);
   if(!isAuto || rowsBox.childElementCount!==tokens.length){
-    /* 全量重绘 */
     rowsBox.innerHTML='';
     const f=document.createDocumentFragment();
     tokens.forEach((t,i)=>{
-      const ratio=((usds[i]/total)*100).toFixed(1);
+      const ratio=total?((usds[i]/total)*100).toFixed(1):'0.0';
       const row=document.createElement('div');row.className='row';row.dataset.symbol=t.symbol;
       row.style.setProperty('--stripe',t.color);
       row.innerHTML=`
@@ -338,7 +359,6 @@ function updateRows(tokens,humans,usds,isAuto){
     });
     rowsBox.appendChild(f);
   }else{
-    /* 局部更新数值防闪烁 */
     tokens.forEach((t,i)=>{
       const row=rowsBox.querySelector(`.row[data-symbol="${t.symbol}"]`);
       if(!row) return;
@@ -352,7 +372,6 @@ function updateRows(tokens,humans,usds,isAuto){
 
 /* ======= 渲染 ALL 视图 ======= */
 function renderAllView(poolDataList,isAuto){
-  /* 排序 */
   poolDataList.sort((a,b)=>b.totalUsd-a.totalUsd);
   if(!isAuto){
     rowsBox.innerHTML='';
@@ -377,7 +396,6 @@ function renderAllView(poolDataList,isAuto){
     });
     rowsBox.appendChild(f);
   }else{
-    /* 自动刷新时只更新价值字段避免闪烁 */
     poolDataList.forEach(p=>{
       const row=[...rowsBox.children].find(r=>r.querySelector('.label')?.textContent.includes(p.name));
       if(row){
@@ -390,17 +408,16 @@ function renderAllView(poolDataList,isAuto){
 /* -------- Refresh (支持 isAuto) -------- */
 async function refresh(isAuto=false){
   if(loading) return;loading=true;refreshId++;
-  const myId=refreshId;           // 本次请求编号
+  const myId=refreshId;
   if(!isAuto){spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';}
 
-  /* 显示 skeleton 仅在手动刷新或切池时首次展示 */
   if(!isAuto){
     if(currentPoolName!=='__ALL__') skeleton(POOLS[currentPoolName].tokens);
     else skeleton([{symbol:'加载',logo:'',color:'#ccc'}]);
   }
 
   try{
-    if(currentPoolName!=='__ALL__'){     /* 单池 */
+    if(currentPoolName!=='__ALL__'){
       const pool=POOLS[currentPoolName];
       await Promise.all(pool.tokens.map(ensureDecimals));
       const prices=await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
@@ -410,14 +427,14 @@ async function refresh(isAuto=false){
         const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
         humans.push(h);usds.push(Math.round(h*prices[i]));
       });
-      if(myId!==refreshId) return;      // 如果已切池，丢弃结果
+      if(myId!==refreshId) return;
       const totalUsd=updateRows(pool.tokens,humans,usds,isAuto);
-      const minRatio=Math.min(...usds.map(u=>u/totalUsd*100));
+      const minRatio=Math.min(...usds.map(u=>totalUsd?u/totalUsd*100:0));
       totalDom.textContent=`💰 总价值：$${totalUsd.toLocaleString()}`;
       const rec=setRecommend(totalUsd,minRatio);
       recommendDom.textContent=rec.txt;recommendDom.style.color=rec.color;
       totalWrap.style.display='flex';
-    }else{                              /* 全部池子 */
+    }else{
       const poolData=[];
       for(const name of Object.keys(POOLS)){
         const p=POOLS[name];
@@ -428,7 +445,7 @@ async function refresh(isAuto=false){
           const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return s+h*prices[i];},0);
         const perTokenUsd=p.tokens.map((t,i)=>{
           const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return h*prices[i];});
-        poolData.push({name,tokens:p.tokens,totalUsd:Math.round(totalUsd),minRatio:Math.min(...perTokenUsd.map(u=>u/totalUsd*100))});
+        poolData.push({name,tokens:p.tokens,totalUsd:Math.round(totalUsd),minRatio:Math.min(...perTokenUsd.map(u=>totalUsd?u/totalUsd*100:0))});
       }
       if(myId!==refreshId) return;
       renderAllView(poolData,isAuto);
