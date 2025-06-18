@@ -27,11 +27,8 @@ body{
   padding:28px 16px;display:flex;flex-direction:column;align-items:center;
   transition:background .3s,color .3s;
 }
-.topbar{width:100%;max-width:680px;display:flex;justify-content:space-between;
-  align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px}
-.title{font-size:24px;font-weight:700;color:var(--c-primary);display:flex;align-items:center;gap:6px}
-#spinner{display:none}.spin{display:block;animation:rotate 1s linear infinite}
-@keyframes rotate{to{transform:rotate(360deg)}}
+/* 置顶控制区 */
+.topbar{width:100%;max-width:680px;margin-bottom:18px}
 .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .switch{display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer}
 .switch input{accent-color:var(--c-primary);cursor:pointer}
@@ -41,6 +38,14 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
   text-decoration:none;cursor:pointer;transition:.18s background}
 .btn:hover{background:var(--c-primary-dark)} .btn:disabled{opacity:.6;cursor:not-allowed}
 .btn-icon{width:16px;height:16px;vertical-align:middle}
+
+/* 主标题 */
+.title{width:100%;max-width:680px;margin:0 0 18px;font-size:24px;
+  font-weight:700;color:var(--c-primary);display:flex;align-items:center;gap:6px}
+#spinner{display:none}.spin{display:block;animation:rotate 1s linear infinite}
+@keyframes rotate{to{transform:rotate(360deg)}}
+
+/* 列表与卡片 */
 .cards{width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px}
 .row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;background:var(--c-card);
   padding:14px 20px 14px 16px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.05);
@@ -54,13 +59,18 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
 .value-num{font-size:18px;font-variant-numeric:tabular-nums}
 .value-price{font-size:14px;margin-top:2px;font-variant-numeric:tabular-nums}
 .ratio-value{font-size:13px;color:var(--c-primary-dark);margin-top:1px;font-variant-numeric:tabular-nums}
+
+/* 总价值与推荐 */
 .total-wrap{margin:22px 0 10px;padding:10px 22px;border-radius:12px;background:rgba(79,172,254,.12);
   display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .total{font-size:26px;font-weight:700;background:var(--grad-total);-webkit-background-clip:text;color:transparent}
 .badge{font-size:20px;font-weight:700}
 .update-time{font-size:14px;color:var(--c-sub);margin-bottom:14px}
+
+/* 骨架屏 */
 .skeleton{background:var(--c-skeleton);border-radius:4px;animation:pulse 1.2s infinite ease-in-out}
 @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+
 /* === 移动端优化（≤560px） === */
 @media(max-width:560px){
   .token-icon,.icon-fallback{width:26px;height:26px}
@@ -72,16 +82,8 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
 </style>
 </head>
 <body>
-<!-- ===== 顶部 ===== -->
+<!-- ===== 顶部：控制区 ===== -->
 <div class="topbar">
-  <div class="title">
-    流动性池子实时数据
-    <svg id="spinner" width="16" height="16" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
-              fill="none" stroke-linecap="round"
-              stroke-dasharray="60" stroke-dashoffset="48"></circle>
-    </svg>
-  </div>
   <div class="controls" id="portalWrap">
     <select id="poolSelect"></select>
     <label class="switch"><input type="checkbox" id="autoCb" checked>自动刷新</label>
@@ -90,6 +92,16 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
     <a class="btn" href="https://x.com/0xXIAOc" target="_blank">🐦 作者推特</a>
   </div>
 </div>
+
+<!-- ===== 主标题（带旋转加载图标） ===== -->
+<h1 class="title">
+  流动性池子实时数据
+  <svg id="spinner" width="16" height="16" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
+            fill="none" stroke-linecap="round"
+            stroke-dasharray="60" stroke-dashoffset="48"></circle>
+  </svg>
+</h1>
 
 <!-- ===== 列表 / 总价值 ===== -->
 <div id="rows" class="cards"></div>
