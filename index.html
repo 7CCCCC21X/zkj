@@ -134,15 +134,6 @@ let loading=false;
 
 /* -------- 池子配置 -------- */
 const POOLS={
-  "ZKJ-KOGE":{
-    tokens:[
-      {symbol:'ZKJ',address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null},
-      {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x099f84de4fb511e861ca8f635623eae409405873'],
-    debank:'https://debank.com/profile/0x099f84de4fb511e861ca8f635623eae409405873'
-  },
   "USDT-KOGE":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -218,8 +209,6 @@ const POOLS={
     addresses:['0xd5b642646a6e40090d5d61ca11a78ee2f6e0ef14'],
     debank:'https://debank.com/profile/0xd5b642646a6e40090d5d61ca11a78ee2f6e0ef14'
   },
-
-  /* ========== 新增 BNB-MYX ========== */
   "BNB-MYX":{
     tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
@@ -228,6 +217,16 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x6ec31af1bb9a72aacec12e4ded508861b05f4503'],
     debank:'https://debank.com/profile/0x6ec31af1bb9a72aacec12e4ded508861b05f4503'
+  },
+  /* 新增 USDT-BR */
+  "USDT-BR":{
+    tokens:[
+      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
+      {symbol:'BR', address:'0xff7d6a96ae471bbcd7713af9cb1feeb16cf56b41',logo:'./br.png',color:'#2196f3',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x380aadf63d84d3a434073f1d5d95f02fb23d5228'],
+    debank:'https://debank.com/profile/0x380aadf63d84d3a434073f1d5d95f02fb23d5228'
   }
 };
 
