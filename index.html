@@ -27,9 +27,13 @@ body{
   padding:28px 16px;display:flex;flex-direction:column;align-items:center;
   transition:background .3s,color .3s;
 }
-/* 置顶控制区 */
-.topbar{width:100%;max-width:680px;margin-bottom:18px}
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* ========= 头部 ========= */
+.topbar{width:100%;max-width:680px;display:flex;flex-wrap:wrap;gap:10px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-left:auto}
+.title{font-size:24px;font-weight:700;color:var(--c-primary);display:flex;align-items:center;gap:6px}
+#spinner{display:none}.spin{display:block;animation:rotate 1s linear infinite}
+@keyframes rotate{to{transform:rotate(360deg)}}
 .switch{display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer}
 .switch input{accent-color:var(--c-primary);cursor:pointer}
 select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;cursor:pointer}
@@ -39,50 +43,44 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
 .btn:hover{background:var(--c-primary-dark)} .btn:disabled{opacity:.6;cursor:not-allowed}
 .btn-icon{width:16px;height:16px;vertical-align:middle}
 
-/* 主标题 */
-.title{width:100%;max-width:680px;margin:0 0 18px;font-size:24px;
-  font-weight:700;color:var(--c-primary);display:flex;align-items:center;gap:6px}
-#spinner{display:none}.spin{display:block;animation:rotate 1s linear infinite}
-@keyframes rotate{to{transform:rotate(360deg)}}
-
-/* 列表与卡片 */
+/* ========= 列表卡片 ========= */
 .cards{width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px}
 .row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;background:var(--c-card);
   padding:14px 20px 14px 16px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.05);
   position:relative;overflow:hidden}
 .row::before{content:"";position:absolute;left:0;top:0;width:6px;height:100%;background:var(--stripe,#ccc)}
 .label{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;white-space:nowrap}
-.token-icon,.icon-fallback{width:32px;height:32px;border-radius:50%;object-fit:cover}
-.icon-fallback{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+.token-icon{width:32px;height:32px;border-radius:50%;object-fit:cover}
 .value{text-align:right;min-width:160px}
 .amount-label,.price-label,.ratio-label{display:block;font-size:12px;font-weight:600;color:var(--c-sub)}
 .value-num{font-size:18px;font-variant-numeric:tabular-nums}
 .value-price{font-size:14px;margin-top:2px;font-variant-numeric:tabular-nums}
 .ratio-value{font-size:13px;color:var(--c-primary-dark);margin-top:1px;font-variant-numeric:tabular-nums}
 
-/* 总价值与推荐 */
+/* ========= 总价值 / 更新时间 ========= */
 .total-wrap{margin:22px 0 10px;padding:10px 22px;border-radius:12px;background:rgba(79,172,254,.12);
   display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .total{font-size:26px;font-weight:700;background:var(--grad-total);-webkit-background-clip:text;color:transparent}
 .badge{font-size:20px;font-weight:700}
 .update-time{font-size:14px;color:var(--c-sub);margin-bottom:14px}
 
-/* 骨架屏 */
+/* ========= 骨架屏 ========= */
 .skeleton{background:var(--c-skeleton);border-radius:4px;animation:pulse 1.2s infinite ease-in-out}
 @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
 
-/* === 移动端优化（≤560px） === */
+/* ========= ≤560px：移动端 ========= */
 @media(max-width:560px){
-  .token-icon,.icon-fallback{width:26px;height:26px}
+  .controls{order:1;width:100%;flex-direction:column;align-items:flex-end}
+  .title{order:2;width:100%;margin:6px 0 18px}
+  .token-icon{width:26px;height:26px}
   .row{grid-template-columns:1fr;padding:12px}
   .label{margin-bottom:6px}
   .value{text-align:left;width:100%}
-  .controls{flex-direction:column;align-items:flex-start}
 }
 </style>
 </head>
 <body>
-<!-- ===== 顶部：控制区 ===== -->
+<!-- ===== 顶部 ===== -->
 <div class="topbar">
   <div class="controls" id="portalWrap">
     <select id="poolSelect"></select>
@@ -91,17 +89,16 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
     <label class="switch"><input type="checkbox" id="darkModeToggle">深色模式</label>
     <a class="btn" href="https://x.com/0xXIAOc" target="_blank">🐦 作者推特</a>
   </div>
-</div>
 
-<!-- ===== 主标题（带旋转加载图标） ===== -->
-<h1 class="title">
-  流动性池子实时数据
-  <svg id="spinner" width="16" height="16" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
-            fill="none" stroke-linecap="round"
-            stroke-dasharray="60" stroke-dashoffset="48"></circle>
-  </svg>
-</h1>
+  <h1 class="title">
+    流动性池子实时数据
+    <svg id="spinner" width="16" height="16" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
+              fill="none" stroke-linecap="round"
+              stroke-dasharray="60" stroke-dashoffset="48"></circle>
+    </svg>
+  </h1>
+</div>
 
 <!-- ===== 列表 / 总价值 ===== -->
 <div id="rows" class="cards"></div>
@@ -134,8 +131,8 @@ const POOLS={
     ],
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:[
-      '0xcf59b8c8baa2dea520e3d549f97d4e49ade17057', /* Pancake */
-      '0x81c7294b66955824bc04acb642ae8dc58e6ce507'  /* Uni — 仅统计余额 */
+      '0xcf59b8c8baa2dea520e3d549f97d4e49ade17057',
+      '0x81c7294b66955824bc04acb642ae8dc58e6ce507'
     ],
     labels:['Pancake','Uni']
   },
@@ -237,18 +234,25 @@ const poolSelect=document.getElementById('poolSelect'),
 
 /* -------- 初始化下拉 -------- */
 Object.keys(POOLS).forEach(n=>{
-  const op=document.createElement('option');op.value=n;op.textContent=n;poolSelect.appendChild(op);
+  const op=document.createElement('option');
+  op.value=n;op.textContent=n;poolSelect.appendChild(op);
 });
-const allOp=document.createElement('option');allOp.value='__ALL__';allOp.textContent='全部池子';poolSelect.appendChild(allOp);
-let currentPoolName=Object.keys(POOLS)[0];poolSelect.value=currentPoolName;
+const allOp=document.createElement('option');
+allOp.value='__ALL__';allOp.textContent='全部池子';
+poolSelect.appendChild(allOp);
+
+let currentPoolName=Object.keys(POOLS)[0];
+poolSelect.value=currentPoolName;
 let mergeMode=true;
 
 /* -------- Provider / Multicall -------- */
 const providers={};
 let provider,multicall;
 function initProvider(){
-  const url=currentPoolName==='__ALL__'?POOLS[Object.keys(POOLS)[0]].rpc:POOLS[currentPoolName].rpc;
-  provider=providers[url]??=new ethers.providers.JsonRpcProvider(url);
+  const url=currentPoolName==='__ALL__'
+    ? POOLS[Object.keys(POOLS)[0]].rpc
+    : POOLS[currentPoolName].rpc;
+  provider=providers[url] ??= new ethers.providers.JsonRpcProvider(url);
   multicall=new ethers.Contract(
     '0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb',
     ['function aggregate(tuple(address target,bytes callData)[]) view returns(uint256,bytes[])'],
@@ -257,143 +261,215 @@ function initProvider(){
 }
 initProvider();
 
-/* -------- 全局缓存 -------- */
+/* -------- 缓存 -------- */
 const CFG={TIMEOUT:8000,RETRY:1,INTERVAL:60000,PRICE_CACHE:30000};
-const cache={},LS='P_';
+const memCache={},LS='P_';
 const getCached=k=>{
-  if(cache[k]!=null)return cache[k];
-  try{const {v,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');
-      return Date.now()-ts<CFG.PRICE_CACHE?v:null}catch{return null}
+  if(memCache[k]!=null) return memCache[k];
+  try{
+    const {v,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');
+    return Date.now()-ts<CFG.PRICE_CACHE ? v : null;
+  }catch{return null}
 };
-const setCached=(k,v)=>{cache[k]=v;localStorage.setItem(LS+k,JSON.stringify({v,ts:Date.now()}))};
+const setCached=(k,v)=>{
+  memCache[k]=v;
+  localStorage.setItem(LS+k,JSON.stringify({v,ts:Date.now()}));
+};
 
 /* -------- 价格查询 -------- */
-const STABLE={'0x55d398326f99059ff775485246999027b3197955':1,'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1};
-async function fetchJSON(u,t=CFG.TIMEOUT,r=CFG.RETRY){
-  for(let i=0;i<=r;i++){
-    const ctl=new AbortController(),id=setTimeout(()=>ctl.abort(),t);
-    try{const res=await fetch(u,{signal:ctl.signal});clearTimeout(id);if(!res.ok)throw 0;return res.json()}
-    catch{if(i===r)throw 0;await new Promise(s=>setTimeout(s,500))}
+const STABLE={
+  '0x55d398326f99059ff775485246999027b3197955':1,
+  '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1
+};
+async function fetchJSON(url,timeout=CFG.TIMEOUT,retry=CFG.RETRY){
+  for(let i=0;i<=retry;i++){
+    const ctl=new AbortController();
+    const timer=setTimeout(()=>ctl.abort(),timeout);
+    try{
+      const res=await fetch(url,{signal:ctl.signal});
+      clearTimeout(timer);
+      if(!res.ok) throw 0;
+      return res.json();
+    }catch{
+      if(i===retry) throw 0;
+      await new Promise(r=>setTimeout(r,500));
+    }
   }
 }
 async function getPrice(addr){
-  const a=addr.toLowerCase();if(a in STABLE){setCached(a,1);return 1}
-  const c=getCached(a);if(c!==null)return c;
-  const pick=pairs=>pairs.find(x=>['USDT','USDC','BUSD'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
-  const p1=()=>fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${a}`).then(j=>{const p=pick(j.pairs||[]);if(!p)throw 0;return +p.priceUsd});
-  const p2=()=>fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${a}`).then(j=>{const p=pick(j.pairs||[]);if(!p)throw 0;return +p.priceUsd});
-  const price=await Promise.any([p1(),p2()]);setCached(a,price);return price;
+  const a=addr.toLowerCase();
+  if(a in STABLE){setCached(a,1);return 1}
+  const cached=getCached(a);
+  if(cached!==null) return cached;
+
+  const pick=pairs=>pairs.find(
+    x=>['USDT','USDC','BUSD'].includes(x.quoteToken.symbol) && x.liquidity.usd>5000
+  );
+  const p1=()=>fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${a}`)
+              .then(j=>{const p=pick(j.pairs||[]);if(!p)throw 0;return +p.priceUsd});
+  const p2=()=>fetchJSON(`https://api.dexscreener.com/latest/dex/search/?q=${a}`)
+              .then(j=>{const p=pick(j.pairs||[]);if(!p)throw 0;return +p.priceUsd});
+  const price=await Promise.any([p1(),p2()]);
+  setCached(a,price);
+  return price;
 }
 
 /* -------- balance & decimals -------- */
 const ERC20=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
 const iface=new ethers.utils.Interface(ERC20);
 async function ensureDecimals(t){
-  if(t.decimals!=null)return;
-  const k='dec_'+t.address.toLowerCase();let d=getCached(k);
-  if(d!=null){t.decimals=d;return}
+  if(t.decimals!=null) return;
+  const k='dec_'+t.address.toLowerCase();
+  let d=getCached(k);
+  if(d!=null){t.decimals=d;return;}
   try{d=await new ethers.Contract(t.address,ERC20,provider).decimals()}catch{d=18}
   t.decimals=d;setCached(k,d);
 }
-async function getBalances(tokens,addrs){
-  const all=await Promise.all(addrs.map(a=>{
+async function getBalances(tokens,addresses){
+  const all=await Promise.all(addresses.map(a=>{
     const calls=tokens.map(t=>[t.address,iface.encodeFunctionData('balanceOf',[a])]);
-    return multicall.aggregate(calls).then(r=>r[1].map(x=>ethers.BigNumber.from(x)))
+    return multicall.aggregate(calls).then(r=>r[1].map(x=>ethers.BigNumber.from(x)));
   }));
   return tokens.map((_,i)=>all.reduce((s,r)=>s.add(r[i]),ethers.BigNumber.from(0)));
 }
 
 /* -------- UI 辅助 -------- */
-const fmtQty=n=>n>=1?n.toLocaleString(undefined,{maximumFractionDigits:2}):n.toFixed(4);
+const fmtQty=n=>n>=1? n.toLocaleString(undefined,{maximumFractionDigits:2})
+                    : n.toFixed(4);
 const fmtM=n=>(n/1e6).toLocaleString(undefined,{maximumFractionDigits:1});
 function recommend(total,minR){
   if(minR<5)      return{txt:'⚠️ 谨慎',col:'#f59e0b'};
   if(total<1.5e6) return{txt:'🚫 不推荐',col:'#e11d48'};
   if(total<3e6)   return{txt:'⚠️ 谨慎',col:'#f59e0b'};
-  return{txt:'✅ 推荐刷',col:'#10b981'}
+  return{txt:'✅ 推荐刷',col:'#10b981'};
 }
 function skeleton(tokens){
   rowsBox.innerHTML='';
   tokens.forEach(t=>{
-    const d=document.createElement('div');d.className='row';d.style.setProperty('--stripe',t.color||'#ccc');
-    d.innerHTML=`<div class="label"><img class="token-icon" src="${t.logo||''}">${t.symbol}</div>
-                 <div class="value"><div class="skeleton" style="width:120px;height:20px;margin-bottom:6px"></div>
-                 <div class="skeleton" style="width:100px;height:18px;margin-bottom:6px"></div>
-                 <div class="skeleton" style="width:60px;height:16px"></div></div>`;
+    const d=document.createElement('div');
+    d.className='row';
+    d.style.setProperty('--stripe',t.color||'#ccc');
+    d.innerHTML=`
+      <div class="label">
+        <img class="token-icon" src="${t.logo||''}" onerror="this.remove()">
+        ${t.symbol}
+      </div>
+      <div class="value">
+        <div class="skeleton" style="width:120px;height:20px;margin-bottom:6px"></div>
+        <div class="skeleton" style="width:100px;height:18px;margin-bottom:6px"></div>
+        <div class="skeleton" style="width:60px;height:16px"></div>
+      </div>`;
     rowsBox.appendChild(d);
   });
-  totalDom.textContent='💰';recommendDom.textContent='';timeDom.textContent='';
+  totalDom.textContent='💰';
+  recommendDom.textContent='';
+  timeDom.textContent='';
 }
 
 /* -------- 渲染单池 -------- */
 async function renderSingle(){
-  const p=POOLS[currentPoolName];skeleton(p.tokens);
+  const p=POOLS[currentPoolName];
+  skeleton(p.tokens);
   try{
     await Promise.all(p.tokens.map(ensureDecimals));
-    const [prices,bals]=await Promise.all([
+    const [prices,balances]=await Promise.all([
       Promise.all(p.tokens.map(t=>getPrice(t.address))),
       getBalances(p.tokens,p.addresses)
     ]);
-    const qty=p.tokens.map((t,i)=>parseFloat(ethers.utils.formatUnits(bals[i],t.decimals)));
+    const qty=p.tokens.map((t,i)=>parseFloat(ethers.utils.formatUnits(balances[i],t.decimals)));
     const usd=qty.map((q,i)=>Math.round(q*prices[i]));
     const total=usd.reduce((a,b)=>a+b,0);
+
     rowsBox.innerHTML='';
     p.tokens.forEach((t,i)=>{
-      const row=document.createElement('div');row.className='row';row.style.setProperty('--stripe',t.color);
-      row.innerHTML=`<div class="label"><img class="token-icon" src="${t.logo}" onerror="this.style.display='none'">${t.symbol}</div>
-                     <div class="value"><span class="amount-label">数量</span><span class="value-num">${fmtQty(qty[i])}</span>
-                     <span class="price-label">价值</span><span class="value-price">≈ $${usd[i].toLocaleString()}</span>
-                     <span class="ratio-label">比例</span><span class="ratio-value">${((usd[i]/total)*100).toFixed(1)}%</span></div>`;
+      const row=document.createElement('div');
+      row.className='row';
+      row.style.setProperty('--stripe',t.color);
+      row.innerHTML=`
+        <div class="label">
+          <img class="token-icon" src="${t.logo}" onerror="this.remove()">${t.symbol}
+        </div>
+        <div class="value">
+          <span class="amount-label">数量</span> <span class="value-num">${fmtQty(qty[i])}</span>
+          <span class="price-label">价值</span> <span class="value-price">≈ $${usd[i].toLocaleString()}</span>
+          <span class="ratio-label">比例</span> <span class="ratio-value">${((usd[i]/total)*100).toFixed(1)}%</span>
+        </div>`;
       rowsBox.appendChild(row);
     });
+
     const rec=recommend(total,Math.min(...usd.map(u=>u/total*100)));
-    totalDom.textContent=`💰 总价值：$${total.toLocaleString()}`;recommendDom.textContent=rec.txt;recommendDom.style.color=rec.col;
+    totalDom.textContent=`💰 总价值：$${total.toLocaleString()}`;
+    recommendDom.textContent=rec.txt;
+    recommendDom.style.color=rec.col;
     timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
-  }catch{Toastify({text:'❌ 数据获取失败',duration:3500,gravity:'top',style:{background:'#e11d48'}}).showToast()}
+  }catch{
+    Toastify({text:'❌ 数据获取失败',duration:3500,gravity:'top',
+              style:{background:'#e11d48'}}).showToast();
+  }
 }
 
 /* -------- 渲染 ALL -------- */
 async function renderAll(){
-  skeleton([{symbol:'加载'}]);
+  skeleton([{symbol:'加载',logo:''}]);
   try{
     const list=[];
     for(const name in POOLS){
       const p=POOLS[name];
       await Promise.all(p.tokens.map(ensureDecimals));
-      const [prices,bals]=await Promise.all([
+      const [prices,balances]=await Promise.all([
         Promise.all(p.tokens.map(t=>getPrice(t.address))),
         getBalances(p.tokens,p.addresses)
       ]);
-      const total=p.tokens.reduce((s,t,i)=>s+parseFloat(ethers.utils.formatUnits(bals[i],t.decimals))*prices[i],0);
-      const minR=Math.min(...p.tokens.map((t,i)=>parseFloat(ethers.utils.formatUnits(bals[i],t.decimals))*prices[i]/total*100));
+      const total=p.tokens.reduce((s,t,i)=>
+          s+parseFloat(ethers.utils.formatUnits(balances[i],t.decimals))*prices[i],0);
+      const minR=Math.min(...p.tokens.map((t,i)=>
+          parseFloat(ethers.utils.formatUnits(balances[i],t.decimals))*prices[i]/total*100));
       list.push({name,tokens:p.tokens,total:Math.round(total),minR});
     }
     rowsBox.innerHTML='';
     list.forEach(o=>{
       const rec=recommend(o.total,o.minR);
-      const row=document.createElement('div');row.className='row';row.style.setProperty('--stripe',o.tokens[0].color);
-      row.innerHTML=`<div class="label"><img class="token-icon" src="${o.tokens[0].logo}"><img class="token-icon" src="${o.tokens[1].logo}"> ${o.name}
-                     <span style="margin-left:6px;color:${rec.col}">${rec.txt}</span></div>
-                     <div class="value"><span class="price-label">价值</span>
-                     <span class="value-price">≈ $${fmtM(o.total)}M</span></div>`;
+      const row=document.createElement('div');
+      row.className='row';
+      row.style.setProperty('--stripe',o.tokens[0].color);
+      row.innerHTML=`
+        <div class="label">
+          <img class="token-icon" src="${o.tokens[0].logo}"><img class="token-icon" src="${o.tokens[1].logo}">
+          ${o.name}
+          <span style="margin-left:6px;color:${rec.col}">${rec.txt}</span>
+        </div>
+        <div class="value">
+          <span class="price-label">价值</span>
+          <span class="value-price">≈ $${fmtM(o.total)}M</span>
+        </div>`;
       rowsBox.appendChild(row);
     });
-    totalDom.textContent='💰';recommendDom.textContent='';timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
-  }catch{Toastify({text:'❌ 数据获取失败',duration:3500,gravity:'top',style:{background:'#e11d48'}}).showToast()}
+    totalDom.textContent='💰';
+    recommendDom.textContent='';
+    timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
+  }catch{
+    Toastify({text:'❌ 数据获取失败',duration:3500,gravity:'top',
+              style:{background:'#e11d48'}}).showToast();
+  }
 }
 
 /* -------- 传送门按钮 -------- */
 function updatePortal(){
   document.querySelectorAll('.debank-btn').forEach(x=>x.remove());
-  if(currentPoolName==='__ALL__')return;
+  if(currentPoolName==='__ALL__') return;
   const p=POOLS[currentPoolName];
-  if(currentPoolName==='USDT-KOGE'){  // 仅 Pancake
-    const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
+  if(currentPoolName==='USDT-KOGE'){
+    const btn=document.createElement('a');
+    btn.className='btn debank-btn';
     btn.href='https://debank.com/profile/'+p.addresses[0];
+    btn.target='_blank';
     btn.innerHTML='<img src="./pancake.png" class="btn-icon">Pancake 池子余额传送门';
     portalWrap.insertBefore(btn,portalWrap.lastElementChild);
   }else if(p.debank){
-    const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';btn.href=p.debank;
+    const btn=document.createElement('a');
+    btn.className='btn debank-btn';
+    btn.href=p.debank;
+    btn.target='_blank';
     btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
     portalWrap.insertBefore(btn,portalWrap.lastElementChild);
   }
@@ -402,21 +478,44 @@ function updatePortal(){
 /* -------- 刷新逻辑 -------- */
 let loading=false;
 async function refresh(){
-  if(loading)return;loading=true;spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';
-  currentPoolName==='__ALL__'?await renderAll():await renderSingle();
-  spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';loading=false;
+  if(loading) return;
+  loading=true;
+  spinner.classList.add('spin');
+  refreshBtn.disabled=true;
+  refreshBtn.textContent='刷新中…';
+  if(currentPoolName==='__ALL__') await renderAll();
+  else await renderSingle();
+  spinner.classList.remove('spin');
+  refreshBtn.disabled=false;
+  refreshBtn.textContent='⟳ 刷新余额';
+  loading=false;
 }
 
 /* -------- 事件绑定 -------- */
-poolSelect.onchange=()=>{currentPoolName=poolSelect.value;initProvider();updatePortal();refresh()};
+poolSelect.onchange=()=>{
+  currentPoolName=poolSelect.value;
+  initProvider();
+  updatePortal();
+  refresh();
+};
 mergeCb.onchange=()=>{mergeMode=mergeCb.checked;refresh()};
 refreshBtn.onclick=refresh;
 let timer=setInterval(refresh,CFG.INTERVAL);
-autoCb.onchange=()=>{autoCb.checked?timer=setInterval(refresh,CFG.INTERVAL):clearInterval(timer)};
-document.addEventListener('visibilitychange',()=>{if(document.hidden)clearInterval(timer);else if(autoCb.checked){refresh();timer=setInterval(refresh,CFG.INTERVAL)}});
+autoCb.onchange=()=>{
+  if(autoCb.checked) timer=setInterval(refresh,CFG.INTERVAL);
+  else clearInterval(timer);
+};
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden) clearInterval(timer);
+  else if(autoCb.checked){
+    refresh();
+    timer=setInterval(refresh,CFG.INTERVAL);
+  }
+});
 
 /* -------- 初始运行 -------- */
-updatePortal();refresh();
+updatePortal();
+refresh();
 </script>
 </body>
 </html>
