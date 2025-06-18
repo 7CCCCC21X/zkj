@@ -24,10 +24,16 @@ body{
   display:flex;flex-direction:column;align-items:center;
   transition:background .3s,color .3s;
 }
+
+/* === 顶栏自适应 === */
 .topbar{
-  width:100%;max-width:680px;display:flex;justify-content:space-between;
-  align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;
+  width:100%;max-width:680px;display:flex;flex-wrap:wrap;
+  gap:10px;align-items:center;justify-content:flex-start;
 }
+@media (min-width:560px){
+  .topbar{justify-content:space-between;}
+}
+
 .title{
   font-size:24px;font-weight:700;color:var(--c-primary);
   display:flex;align-items:center;gap:6px;
@@ -48,19 +54,26 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
 .btn-icon{width:16px;height:16px;vertical-align:middle}
 
 .cards{width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px}
+
+/* === 卡片 flex 布局 === */
 .row{
-  display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
   background:var(--c-card);padding:14px 20px 14px 16px;border-radius:10px;
   box-shadow:0 2px 6px rgba(0,0,0,.05);position:relative;overflow:hidden;
 }
 .row::before{content:"";position:absolute;left:0;top:0;width:6px;height:100%;background:var(--stripe,#ccc)}
+@media (max-width:560px){
+  .row{flex-direction:column;align-items:flex-start;padding:12px 14px 12px 12px;}
+}
+
 .label{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;white-space:nowrap}
 .token-icon,.icon-fallback{width:32px;height:32px;border-radius:50%;object-fit:cover}
 .icon-fallback{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+
 .value{text-align:right;min-width:160px}
 .amount-label,.price-label,.ratio-label{display:block;font-size:12px;font-weight:600;color:var(--c-sub)}
-.value-num{font-size:18px;font-variant-numeric:tabular-nums}
-.value-price{font-size:14px;margin-top:2px;font-variant-numeric:tabular-nums}
+.value-num{font-size:18px;font-variant-numeric:tabular-nums;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.value-price{font-size:14px;margin-top:2px;font-variant-numeric:tabular-nums;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ratio-value{font-size:13px;color:var(--c-primary-dark);margin-top:1px;font-variant-numeric:tabular-nums}
 
 .total-wrap{
@@ -74,50 +87,43 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
 
 .skeleton{background:var(--c-skeleton);border-radius:4px;animation:pulse 1.2s infinite ease-in-out}
 @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
-
-@media(max-width:560px){
-  .token-icon,.icon-fallback{width:26px;height:26px}
-  .row{padding:12px 14px 12px 12px;grid-template-columns:auto 1fr}
-  .value{text-align:left;margin-top:6px;min-width:0}
-  .controls{flex-direction:column;align-items:flex-start}
-}
 </style>
 </head>
 <body>
-  <!-- ===== 顶部 ===== -->
-  <div class="topbar">
-    <div class="title">
-      流动性池子实时数据
-      <svg id="spinner" width="16" height="16" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
-                fill="none" stroke-linecap="round"
-                stroke-dasharray="60" stroke-dashoffset="48"></circle>
-      </svg>
-    </div>
-    <div class="controls" id="portalWrap">
-      <select id="poolSelect"></select>
-      <label class="switch"><input type="checkbox" id="autoCb" checked>自动刷新</label>
-      <label class="switch"><input type="checkbox" id="darkModeToggle">深色模式</label>
-      <a class="btn" href="https://x.com/0xXIAOc" target="_blank">🐦 作者推特</a>
-    </div>
+<!-- ===== 顶部 ===== -->
+<div class="topbar">
+  <div class="title">
+    流动性池子实时数据
+    <svg id="spinner" width="16" height="16" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
+              fill="none" stroke-linecap="round"
+              stroke-dasharray="60" stroke-dashoffset="48"></circle>
+    </svg>
   </div>
-
-  <!-- ===== 列表 / 总价值 ===== -->
-  <div id="rows" class="cards"></div>
-  <div class="total-wrap" id="totalWrap">
-    <span id="totalValue" class="total">💰</span>
-    <span id="recommend" class="badge"></span>
+  <div class="controls" id="portalWrap">
+    <select id="poolSelect"></select>
+    <label class="switch"><input type="checkbox" id="autoCb" checked>自动刷新</label>
+    <label class="switch"><input type="checkbox" id="darkModeToggle">深色模式</label>
+    <a class="btn" href="https://x.com/0xXIAOc" target="_blank">🐦 作者推特</a>
   </div>
-  <div id="updateTime" class="update-time"></div>
-  <button id="refreshBtn" class="btn" aria-label="刷新余额">⟳ 刷新余额</button>
+</div>
 
-  <!-- ===== 依赖 ===== -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7/dist/ethers.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css"/>
+<!-- ===== 列表 / 总价值 ===== -->
+<div id="rows" class="cards"></div>
+<div class="total-wrap" id="totalWrap">
+  <span id="totalValue" class="total">💰</span>
+  <span id="recommend" class="badge"></span>
+</div>
+<div id="updateTime" class="update-time"></div>
+<button id="refreshBtn" class="btn" aria-label="刷新余额">⟳ 刷新余额</button>
 
-  <!-- ===== 业务脚本 ===== -->
-  <script>
+<!-- ===== 依赖 ===== -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7/dist/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css"/>
+
+<!-- ===== 业务脚本 ===== -->
+<script>
 /* ========== 暗黑模式 ========== */
 const html=document.documentElement,darkToggle=document.getElementById('darkModeToggle');
 const saved=localStorage.getItem('darkMode');
@@ -126,8 +132,6 @@ darkToggle.onchange=()=>applyDark(darkToggle.checked);applyDark(saved==='1');
 
 /* -------- 并发锁 -------- */
 let loading=false;
-
-(async ()=>{
 
 /* -------- 池子配置 -------- */
 const POOLS={
@@ -142,7 +146,6 @@ const POOLS={
       '0x81c7294b66955824bc04acb642ae8dc58e6ce507'
     ]
   },
-  /* 其余池子保持不变……（略） */
   "USDT-TAIKO":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -226,9 +229,8 @@ const POOLS={
   }
 };
 
-/* -------- DOM 初始化 -------- */
+/* -------- DOM -------- */
 const poolSelect=document.getElementById('poolSelect'),
-      portalWrap=document.getElementById('portalWrap'),
       rowsBox=document.getElementById('rows'),
       totalWrap=document.getElementById('totalWrap'),
       totalDom=document.getElementById('totalValue'),
@@ -236,21 +238,18 @@ const poolSelect=document.getElementById('poolSelect'),
       timeDom=document.getElementById('updateTime'),
       spinner=document.getElementById('spinner'),
       autoCb=document.getElementById('autoCb'),
-      refreshBtn=document.getElementById('refreshBtn');
+      refreshBtn=document.getElementById('refreshBtn'),
+      portalWrap=document.getElementById('portalWrap');
 
-Object.keys(POOLS).forEach(n=>{
-  const o=document.createElement('option');o.value=n;o.textContent=n;poolSelect.appendChild(o);
+Object.keys(POOLS).forEach(name=>{
+  const o=document.createElement('option');o.value=name;o.textContent=name;poolSelect.appendChild(o);
 });
-const allOpt=document.createElement('option');
-allOpt.value='__ALL__';allOpt.textContent='全部池子';poolSelect.appendChild(allOpt);
+const allOpt=document.createElement('option');allOpt.value='__ALL__';allOpt.textContent='全部池子';poolSelect.appendChild(allOpt);
 
 let currentPoolName=Object.keys(POOLS)[0];poolSelect.value=currentPoolName;
 
 /* -------- Provider & Multicall -------- */
-const providers={};
-let provider,multicall;
-const MULTICALL_ABI=['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'];
-const ERC20_ABI   =['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
+const providers={},MULTICALL_ABI=['function aggregate(tuple(address target, bytes callData)[]) view returns(uint256,bytes[])'],ERC20_ABI=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];let provider,multicall;
 function initProvider(){
   const url=currentPoolName==='__ALL__'
     ? POOLS[Object.keys(POOLS)[0]].rpc
@@ -260,14 +259,13 @@ function initProvider(){
 }
 initProvider();
 
-/* -------- 配置 & 缓存 -------- */
+/* -------- 缓存 / 工具 -------- */
 const CFG={TIMEOUT:8000,RETRY:1,INTERVAL:60000,PRICE_CACHE:30000};
 const cache={},LS='P_';
 const getCached=k=>{
   if(cache[k]!=null) return cache[k];
   try{const {v,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');
-      return Date.now()-ts<CFG.PRICE_CACHE?v:null;}catch{return null}
-};
+      return Date.now()-ts<CFG.PRICE_CACHE?v:null;}catch{return null}};
 const setCached=(k,v)=>{cache[k]=v;localStorage.setItem(LS+k,JSON.stringify({v,ts:Date.now()}));};
 
 /* -------- 价格 -------- */
@@ -278,13 +276,15 @@ const STABLE_PRICE={
 async function fetchJSON(u,t=CFG.TIMEOUT,r=CFG.RETRY){
   for(let i=0;i<=r;i++){
     const c=new AbortController(),id=setTimeout(()=>c.abort(),t);
-    try{const res=await fetch(u,{signal:c.signal});clearTimeout(id);if(!res.ok) throw 0;return res.json();}
+    try{const res=await fetch(u,{signal:c.signal});clearTimeout(id);
+        if(!res.ok) throw 0;return res.json();}
     catch(e){if(i===r) throw e;await new Promise(s=>setTimeout(s,500));}
   }
 }
 async function getPrice(addr){
-  const a=addr.toLowerCase();if(a in STABLE_PRICE){setCached(a,1);return 1;}
-  const c=getCached(a);if(c!==null) return c;
+  const a=addr.toLowerCase();
+  if(a in STABLE_PRICE){setCached(a,1);return 1;}
+  const cached=getCached(a);if(cached!==null) return cached;
   const req1=()=>fetchJSON(`https://api.dexscreener.com/latest/dex/tokens/${a}`).then(j=>{
     const p=(j.pairs||[]).find(x=>['USDT','USDC','BUSD'].includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
     if(!p) throw 0;return +p.priceUsd;});
@@ -314,7 +314,7 @@ async function getBalances(tokens,addrs){
 /* -------- Skeleton -------- */
 function skeleton(tokens){
   rowsBox.innerHTML='';
-  const frag=document.createDocumentFragment();
+  const f=document.createDocumentFragment();
   tokens.forEach(t=>{
     const d=document.createElement('div');d.className='row';d.style.setProperty('--stripe',t.color||'#ccc');
     d.innerHTML=`
@@ -322,16 +322,15 @@ function skeleton(tokens){
         <div style="display:flex;gap:4px">
           <img class="token-icon" src="${t.logo||''}" referrerpolicy="no-referrer"
                onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
-        </div>
-        ${t.symbol||''}
+        </div>${t.symbol||''}
       </div>
       <div class="value">
         <span class="amount-label">数量</span><div class="skeleton" style="width:120px;height:20px"></div>
         <span class="price-label">价值</span><div class="skeleton" style="width:100px;height:18px"></div>
         <span class="ratio-label">比例</span><div class="skeleton" style="width:60px;height:16px"></div>
-      </div>`;frag.appendChild(d);
+      </div>`;f.appendChild(d);
   });
-  rowsBox.appendChild(frag);totalDom.textContent='💰';recommendDom.textContent='';timeDom.textContent='';
+  rowsBox.appendChild(f);totalDom.textContent='💰';recommendDom.textContent='';timeDom.textContent='';
 }
 
 /* -------- Utils -------- */
@@ -339,15 +338,10 @@ const fmtQty=n=>(n>=1?n.toLocaleString(undefined,{maximumFractionDigits:2}):n.to
 const fmtM  =n=>(n/1_000_000).toLocaleString(undefined,{maximumFractionDigits:1});
 function setRecommend(totalUsd,minRatio){
   let txt='',c='';
-  if(minRatio<5){
-    txt='⚠️ 谨慎';c='#f59e0b';
-  }else if(totalUsd<1_500_000){
-    txt='🚫 不推荐';c='#e11d48';
-  }else if(totalUsd<3_000_000){
-    txt='⚠️ 谨慎';c='#f59e0b';
-  }else{
-    txt='✅ 推荐刷';c='#10b981';
-  }
+  if(minRatio<5){txt='⚠️ 谨慎';c='#f59e0b';}
+  else if(totalUsd<1_500_000){txt='🚫 不推荐';c='#e11d48';}
+  else if(totalUsd<3_000_000){txt='⚠️ 谨慎';c='#f59e0b';}
+  else{txt='✅ 推荐刷';c='#10b981';}
   return {txt,color:c};
 }
 
@@ -355,7 +349,7 @@ function setRecommend(totalUsd,minRatio){
 function renderRows(tokens,humans,usds){
   const total=usds.reduce((a,b)=>a+b,0);
   rowsBox.innerHTML='';
-  const frag=document.createDocumentFragment();
+  const f=document.createDocumentFragment();
   tokens.forEach((t,i)=>{
     const ratio=((usds[i]/total)*100).toFixed(1);
     const row=document.createElement('div');row.className='row';row.style.setProperty('--stripe',t.color);
@@ -373,15 +367,17 @@ function renderRows(tokens,humans,usds){
         <span class="value-price">≈ $${usds[i].toLocaleString()}</span>
         <span class="ratio-label">比例</span>
         <span class="ratio-value">${ratio}%</span>
-      </div>`;frag.appendChild(row);
+      </div>`;f.appendChild(row);
   });
-  rowsBox.appendChild(frag);return total;
+  rowsBox.appendChild(f);return total;
 }
 
 /* ======= 渲染 ALL 视图 ======= */
 function renderAllView(poolDataList){
+  /* 按流动性余额降序 */
+  poolDataList.sort((a,b)=>b.totalUsd-a.totalUsd);
   rowsBox.innerHTML='';
-  const frag=document.createDocumentFragment();
+  const f=document.createDocumentFragment();
   poolDataList.forEach(p=>{
     const rec=setRecommend(p.totalUsd,p.minRatio);
     const logoTwo=`
@@ -389,8 +385,7 @@ function renderAllView(poolDataList){
            onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">
       <img class="token-icon" src="${p.tokens[1].logo}" referrerpolicy="no-referrer"
            onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">`;
-    const row=document.createElement('div');row.className='row';
-    row.style.setProperty('--stripe',p.tokens[0].color);
+    const row=document.createElement('div');row.className='row';row.style.setProperty('--stripe',p.tokens[0].color);
     row.innerHTML=`
       <div class="label">
         <div style="display:flex;gap:4px">${logoTwo}</div>
@@ -399,19 +394,21 @@ function renderAllView(poolDataList){
       <div class="value">
         <span class="price-label">价值</span>
         <span class="value-price">≈ $${fmtM(p.totalUsd)}M</span>
-      </div>`;
-    frag.appendChild(row);
+      </div>`;f.appendChild(row);
   });
-  rowsBox.appendChild(frag);
+  rowsBox.appendChild(f);
 }
 
-/* -------- Refresh -------- */
-async function refresh(){
-  if(loading) return;loading=true;spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';
+/* -------- Refresh (支持 isAuto) -------- */
+async function refresh(isAuto=false){
+  if(loading) return;loading=true;
+  spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';
 
-  if(currentPoolName!=='__ALL__'){ /* 单池逻辑 */ 
+  const showSkeleton=!isAuto;
+
+  if(currentPoolName!=='__ALL__'){     /* 单池 */
     const pool=POOLS[currentPoolName];
-    skeleton(pool.tokens);
+    if(showSkeleton) skeleton(pool.tokens);
     try{
       await Promise.all(pool.tokens.map(ensureDecimals));
       const prices=await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
@@ -424,51 +421,36 @@ async function refresh(){
       const totalUsd=renderRows(pool.tokens,humans,usds);
       const minRatio=Math.min(...usds.map(u=>u/totalUsd*100));
       totalDom.textContent=`💰 总价值：$${totalUsd.toLocaleString()}`;
-      const rec=setRecommend(totalUsd,minRatio);
-      recommendDom.textContent=rec.txt;recommendDom.style.color=rec.color;
+      const rec=setRecommend(totalUsd,minRatio);recommendDom.textContent=rec.txt;recommendDom.style.color=rec.color;
       totalWrap.style.display='flex';
       timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
     }catch(e){
       Toastify({text:'❌ 数据获取失败：'+e.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
-      totalDom.textContent='总价值获取失败';recommendDom.textContent='';
-    }finally{
-      spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';loading=false;
     }
-    return;
+  }else{                              /* 全部池子 */
+    if(showSkeleton) skeleton([{symbol:'加载',logo:'',color:'#ccc'}]);
+    try{
+      const poolData=[];
+      for(const name of Object.keys(POOLS)){
+        const p=POOLS[name];
+        await Promise.all(p.tokens.map(ensureDecimals));
+        const prices=await Promise.all(p.tokens.map(t=>getPrice(t.address)));
+        const bals=await getBalances(p.tokens,p.addresses);
+        const totalUsd=p.tokens.reduce((s,t,i)=>{
+          const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return s+h*prices[i];},0);
+        const perTokenUsd=p.tokens.map((t,i)=>{
+          const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return h*prices[i];});
+        poolData.push({name,tokens:p.tokens,totalUsd:Math.round(totalUsd),minRatio:Math.min(...perTokenUsd.map(u=>u/totalUsd*100))});
+      }
+      renderAllView(poolData);
+      totalWrap.style.display='none';
+      timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
+    }catch(e){
+      Toastify({text:'❌ 数据获取失败：'+e.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
+    }
   }
 
-  /* === 全部池子模式 === */
-  skeleton([{symbol:'加载',logo:'',color:'#ccc'}]);
-  try{
-    const poolData=[];
-    for(const name of Object.keys(POOLS)){
-      const p=POOLS[name];
-      await Promise.all(p.tokens.map(ensureDecimals));
-      const prices=await Promise.all(p.tokens.map(t=>getPrice(t.address)));
-      const bals=await getBalances(p.tokens,p.addresses);
-      const totalUsd=p.tokens.reduce((s,t,i)=>{
-        const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
-        return s+h*prices[i];
-      },0);
-      const perTokenUsd=p.tokens.map((t,i)=>{
-        const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
-        return h*prices[i];
-      });
-      poolData.push({
-        name,
-        tokens:p.tokens,
-        totalUsd:Math.round(totalUsd),
-        minRatio:Math.min(...perTokenUsd.map(u=>u/totalUsd*100))
-      });
-    }
-    renderAllView(poolData);
-    totalWrap.style.display='none';
-    timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
-  }catch(e){
-    Toastify({text:'❌ 数据获取失败：'+e.message,duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
-  }finally{
-    spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';loading=false;
-  }
+  spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';loading=false;
 }
 
 /* -------- 传送门按钮 -------- */
@@ -477,10 +459,8 @@ function updatePortalLinks(){
   clearPortalButtons();
   if(currentPoolName==='__ALL__') return;
   const p=POOLS[currentPoolName];
-  if(currentPoolName==='USDT-KOGE'){          /* 仅保留 Pancake 按钮 */
-    const btn=document.createElement('a');
-    btn.className='btn debank-btn';
-    btn.target='_blank';
+  if(currentPoolName==='USDT-KOGE'){      /* 仅 Pancake */
+    const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
     btn.href='https://debank.com/profile/0xcf59b8c8baa2dea520e3d549f97d4e49ade17057';
     btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
     portalWrap.insertBefore(btn,portalWrap.lastElementChild);
@@ -492,16 +472,17 @@ function updatePortalLinks(){
 }
 
 /* -------- 事件绑定 -------- */
-poolSelect.onchange=()=>{currentPoolName=poolSelect.value;initProvider();updatePortalLinks();refresh();};
-let btnTimer=0;refreshBtn.onclick=()=>{clearTimeout(btnTimer);btnTimer=setTimeout(refresh,500);};
-let timer=setInterval(refresh,CFG.INTERVAL);
-autoCb.onchange=()=>{autoCb.checked?timer=setInterval(refresh,CFG.INTERVAL):clearInterval(timer);};
-document.addEventListener('visibilitychange',()=>{if(document.hidden) clearInterval(timer);else if(autoCb.checked){refresh();timer=setInterval(refresh,CFG.INTERVAL);}});
+poolSelect.onchange=()=>{currentPoolName=poolSelect.value;initProvider();updatePortalLinks();refresh(false);};
+let btnTimer=0;refreshBtn.onclick=()=>{clearTimeout(btnTimer);btnTimer=setTimeout(()=>refresh(false),500);};
+let timer=setInterval(()=>refresh(true),CFG.INTERVAL);
+autoCb.onchange=()=>{autoCb.checked?timer=setInterval(()=>refresh(true),CFG.INTERVAL):clearInterval(timer);};
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){clearInterval(timer);}
+  else if(autoCb.checked){refresh(true);timer=setInterval(()=>refresh(true),CFG.INTERVAL);}
+});
 
 /* -------- 初始化 -------- */
-updatePortalLinks();refresh();
-
-})();
+updatePortalLinks();refresh(false);
 </script>
 </body>
 </html>
