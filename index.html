@@ -133,6 +133,7 @@ let loading=false,refreshId=0;
 
 /* -------- 池子配置 -------- */
 const POOLS={
+  /* -------------- 原有池子 -------------- */
   "USDT-KOGE":{tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
@@ -151,12 +152,6 @@ const POOLS={
     ],rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x5968feacba91d55010975e0cfe8acfc32664ad33']
   },
-  "USDC-SQD":{tokens:[
-      {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
-      {symbol:'SQD', address:'0xe50e3d1a46070444f44df911359033f2937fcc13',logo:'./sqd.png', color:'#f06292',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x43256d0dcc2571e564311edb6d7e8f076a72fc46']
-  },
   "USDT-AB":{tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'AB',  address:'0x95034f653d5d161890836ad2b6b8cc49d14e029a',logo:'./ab.png',color:'#ffb700',decimals:null}
@@ -168,12 +163,6 @@ const POOLS={
       {symbol:'AB', address:'0x95034f653d5d161890836ad2b6b8cc49d14e029a',logo:'./ab.png', color:'#ffb700',decimals:null}
     ],rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xb05500ea96db17d28cd0eb30bcb797708f279d36']
-  },
-  "USDT-ZRC":{tokens:[
-      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
-      {symbol:'ZRC', address:'0xdac991621fd8048d9f235324780abd6c3ad26421',logo:'./zrc.png', color:'#9c27b0',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0xe9388678f0542d5406145c3db85b5b754daff085']
   },
   "USDT-SERAPH":{tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -192,6 +181,37 @@ const POOLS={
       {symbol:'BR', address:'0xff7d6a96ae471bbcd7713af9cb1feeb16cf56b41',logo:'./br.png',color:'#2196f3',decimals:null}
     ],rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x380aadf63d84d3a434073f1d5d95f02fb23d5228']
+  },
+  "USDT-OL":{tokens:[
+      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
+      {symbol:'OL', address:'0x3f160760535eb715d5809a26cf55408a2d9844c1',logo:'./ol.png', color:'#ff7043',decimals:null}
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0xe65ea0ec747f2a3cc7999b92f81231db48f6ab1f']
+  },
+  "USDT-ROAM":{tokens:[
+      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
+      {symbol:'ROAM',address:'0x3fefe29da25bea166fb5f6ade7b5976d2b0e586b',logo:'./roam.png',color:'#e91e63',decimals:null}
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x30d59a44930b3994c116846efe55fc8fcf608aa8']
+  },
+  "USDC-VELO":{tokens:[
+      {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
+      {symbol:'VELO',address:'0xf486ad071f3bee968384d2e39e2d8af0fcf6fd46',logo:'./velo.png',color:'#673ab7',decimals:null}
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x258474cd00b4f42842ed424e6c2c1da0087031b8']
+  },
+  /* -------------- 新增池子 -------------- */
+  "BNB-PUNDIAI":{tokens:[
+      {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
+      {symbol:'PUNDIAI',address:'0x67aa700ab0110cc52bf7f308fe25068e87a0f581',logo:'./pundiai.png',color:'#ff5722',decimals:null}
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x0bc2a40a6f2b1b2020e11d946fc6892c6b34691a']
+  },
+  "USDC-F":{tokens:[
+      {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
+      {symbol:'F',address:'0xc9ccbd76c2353e593cc975f13295e8289d04d3bb',logo:'./f.png',color:'#009688',decimals:null}
+    ],rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x8f5e4bc27450bbe6e6f846d4b8742acf345380d7']
   }
 };
 
@@ -239,7 +259,7 @@ const STABLE_PRICE={
   '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1
 };
 
-/* ★ 新增：允许 WBNB 作为报价币 */
+/* ★ 允许 WBNB 作为报价币 */
 const QUOTE_OK=['USDT','USDC','BUSD','WBNB'];
 
 async function fetchJSON(u,t=CFG.TIMEOUT,r=CFG.RETRY){
@@ -325,9 +345,9 @@ function setRecommend(totalUsd,minRatio){
   if(totalUsd===0) return {txt:'❓ 未定价',color:'#f59e0b'};
   let txt='',c='';
   if(minRatio<5){txt='⚠️ 谨慎';c='#f59e0b';}
-  else if(totalUsd<1_500_000){txt='🚫 不推荐';c='#e11d48';}
+  else if(totalUsd<1_500_000){txt='🚫 不推荐';c:'#e11d48';}
   else if(totalUsd<3_000_000){txt='⚠️ 谨慎';c='#f59e0b';}
-  else{txt='✅ 推荐刷';c='#10b981';}
+  else{txt='✅ 推荐刷';c:'#10b981';}
   return {txt,color:c};
 }
 
@@ -460,22 +480,16 @@ async function refresh(isAuto=false){
   }
 }
 
-/* -------- 传送门按钮 -------- */
+/* -------- 传送门按钮：全部池子视图隐藏，其余池子自动生成 -------- */
 function clearPortalButtons(){document.querySelectorAll('.debank-btn').forEach(el=>el.remove());}
 function updatePortalLinks(){
   clearPortalButtons();
-  if(currentPoolName==='__ALL__') return;
-  const p=POOLS[currentPoolName];
-  if(currentPoolName==='USDT-KOGE'){
-    const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
-    btn.href='https://debank.com/profile/0xcf59b8c8baa2dea520e3d549f97d4e49ade17057';
-    btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
-    portalWrap.insertBefore(btn,portalWrap.lastElementChild);
-  }else if(p.debank){
-    const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';btn.href=p.debank;
-    btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
-    portalWrap.insertBefore(btn,portalWrap.lastElementChild);
-  }
+  if(currentPoolName==='__ALL__') return;                         // 全部池子视图不显示
+  const addr=POOLS[currentPoolName].addresses[0];                 // 取首个 LP 地址
+  const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
+  btn.href=`https://debank.com/profile/${addr}`;
+  btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
+  portalWrap.insertBefore(btn,portalWrap.lastElementChild);
 }
 
 /* -------- 事件绑定 -------- */
