@@ -26,19 +26,11 @@ body{
 }
 
 /* === 顶栏自适应 === */
-.topbar{
-  width:100%;max-width:680px;display:flex;flex-wrap:wrap;
-  gap:10px;align-items:center;justify-content:flex-start;
-}
-@media (min-width:560px){.topbar{justify-content:space-between;}}
-
-.title{
-  font-size:24px;font-weight:700;color:var(--c-primary);
-  display:flex;align-items:center;gap:6px;
-}
+.topbar{width:100%;max-width:680px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-start;}
+@media (min-width:560px){.topbar{justify-content:space-between}}
+.title{font-size:24px;font-weight:700;color:var(--c-primary);display:flex;align-items:center;gap:6px}
 #spinner{display:none}.spin{display:block;animation:rotate 1s linear infinite}
 @keyframes rotate{to{transform:rotate(360deg)}}
-
 .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .switch{display:flex;align-items:center;gap:4px;font-size:14px;cursor:pointer}
 .switch input{accent-color:var(--c-primary);cursor:pointer}
@@ -52,17 +44,13 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
 .btn-icon{width:16px;height:16px;vertical-align:middle}
 
 .cards{width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px}
-
-/* === 卡片 flex 布局 === */
 .row{
   display:flex;align-items:center;justify-content:space-between;gap:18px;
   background:var(--c-card);padding:14px 20px 14px 16px;border-radius:10px;
   box-shadow:0 2px 6px rgba(0,0,0,.05);position:relative;overflow:hidden;
 }
 .row::before{content:"";position:absolute;left:0;top:0;width:6px;height:100%;background:var(--stripe,#ccc)}
-@media (max-width:560px){
-  .row{flex-direction:column;align-items:flex-start;padding:12px 14px 12px 12px;}
-}
+@media (max-width:560px){.row{flex-direction:column;align-items:flex-start;padding:12px 14px 12px 12px}}
 
 .label{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;white-space:nowrap}
 .token-icon,.icon-fallback{width:32px;height:32px;border-radius:50%;object-fit:cover}
@@ -74,12 +62,8 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
 .value-price{font-size:14px;margin-top:2px;font-variant-numeric:tabular-nums;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ratio-value{font-size:13px;color:var(--c-primary-dark);margin-top:1px;font-variant-numeric:tabular-nums}
 
-.total-wrap{
-  margin:22px 0 10px;padding:10px 22px;border-radius:12px;
-  background:rgba(79,172,254,.12);display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-}
-.total{font-size:26px;font-weight:700;background:var(--grad-total);
-  -webkit-background-clip:text;color:transparent}
+.total-wrap{margin:22px 0 10px;padding:10px 22px;border-radius:12px;background:rgba(79,172,254,.12);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.total{font-size:26px;font-weight:700;background:var(--grad-total);-webkit-background-clip:text;color:transparent}
 .badge{font-size:20px;font-weight:700}
 .update-time{font-size:14px;color:var(--c-sub);margin-bottom:14px}
 
@@ -133,85 +117,119 @@ let loading=false,refreshId=0;
 
 /* -------- 池子配置 -------- */
 const POOLS={
-  /* -------------- 原有池子 -------------- */
-  "USDT-KOGE":{tokens:[
+  "USDT-KOGE":{
+    tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'KOGE',address:'0xe6df05ce8c8301223373cf5b969afcb1498c5528',logo:'./koge.png',color:'#ff9800',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xcf59b8c8baa2dea520e3d549f97d4e49ade17057']
   },
-  "USDT-TAIKO":{tokens:[
+  "USDT-TAIKO":{
+    tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'TAIKO',address:'0x30c60b20c25b2810ca524810467a0c342294fc61',logo:'./taiko.png',color:'#8e44ad',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xbe77ac86750fb0359fa623e63e7f009979bb701c']
   },
-  "USDT-ZKJ":{tokens:[
+  "USDT-ZKJ":{
+    tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
-      {symbol:'ZKJ', address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+      {symbol:'ZKJ',address:'0xc71b5f631354be6853efe9c3ab6b9590f8302e81',logo:'./zkj.png',color:'#1e88ff',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x5968feacba91d55010975e0cfe8acfc32664ad33']
   },
-  "USDT-AB":{tokens:[
+  "USDT-AB":{
+    tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
-      {symbol:'AB',  address:'0x95034f653d5d161890836ad2b6b8cc49d14e029a',logo:'./ab.png',color:'#ffb700',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+      {symbol:'AB',address:'0x95034f653d5d161890836ad2b6b8cc49d14e029a',logo:'./ab.png',color:'#ffb700',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xd7af60112d7dfe0f914724e3407dd54424aaa19b']
   },
-  "BNB-AB":{tokens:[
+  "BNB-AB":{
+    tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
-      {symbol:'AB', address:'0x95034f653d5d161890836ad2b6b8cc49d14e029a',logo:'./ab.png', color:'#ffb700',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+      {symbol:'AB',address:'0x95034f653d5d161890836ad2b6b8cc49d14e029a',logo:'./ab.png',color:'#ffb700',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xb05500ea96db17d28cd0eb30bcb797708f279d36']
   },
-  "USDT-SERAPH":{tokens:[
+  "USDT-SERAPH":{
+    tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'SERAPH',address:'0xd6b48ccf41a62eb3891e58d0f006b19b01d50cca',logo:'./seraph.png',color:'#d32f2f',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xd5b642646a6e40090d5d61ca11a78ee2f6e0ef14']
   },
-  "BNB-MYX":{tokens:[
+  "BNB-MYX":{
+    tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
       {symbol:'MYX',address:'0xd82544bf0dfe8385ef8fa34d67e6e4940cc63e16',logo:'./myx.png',color:'#00bcd4',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x6ec31af1bb9a72aacec12e4ded508861b05f4503']
   },
-  "USDT-BR":{tokens:[
+  "USDT-BR":{
+    tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
-      {symbol:'BR', address:'0xff7d6a96ae471bbcd7713af9cb1feeb16cf56b41',logo:'./br.png',color:'#2196f3',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+      {symbol:'BR',address:'0xff7d6a96ae471bbcd7713af9cb1feeb16cf56b41',logo:'./br.png',color:'#2196f3',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x380aadf63d84d3a434073f1d5d95f02fb23d5228']
   },
-  "USDT-OL":{tokens:[
+  "USDT-OL":{
+    tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
-      {symbol:'OL', address:'0x3f160760535eb715d5809a26cf55408a2d9844c1',logo:'./ol.png', color:'#ff7043',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+      {symbol:'OL',address:'0x3f160760535eb715d5809a26cf55408a2d9844c1',logo:'./ol.png',color:'#ff7043',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xe65ea0ec747f2a3cc7999b92f81231db48f6ab1f']
   },
-  "USDT-ROAM":{tokens:[
+  "USDT-ROAM":{
+    tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
       {symbol:'ROAM',address:'0x3fefe29da25bea166fb5f6ade7b5976d2b0e586b',logo:'./roam.png',color:'#e91e63',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x30d59a44930b3994c116846efe55fc8fcf608aa8']
   },
-  "USDC-VELO":{tokens:[
+  "USDC-VELO":{
+    tokens:[
       {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
       {symbol:'VELO',address:'0xf486ad071f3bee968384d2e39e2d8af0fcf6fd46',logo:'./velo.png',color:'#673ab7',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x258474cd00b4f42842ed424e6c2c1da0087031b8']
   },
-  /* -------------- 新增池子 -------------- */
-  "BNB-PUNDIAI":{tokens:[
+  /* ---------- 新增池子 (先前已加) ---------- */
+  "BNB-PUNDIAI":{
+    tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
       {symbol:'PUNDIAI',address:'0x67aa700ab0110cc52bf7f308fe25068e87a0f581',logo:'./pundiai.png',color:'#ff5722',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x0bc2a40a6f2b1b2020e11d946fc6892c6b34691a']
   },
-  "USDC-F":{tokens:[
+  "USDC-F":{
+    tokens:[
       {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
       {symbol:'F',address:'0xc9ccbd76c2353e593cc975f13295e8289d04d3bb',logo:'./f.png',color:'#009688',decimals:null}
-    ],rpc:'https://bsc-dataseed.binance.org/',
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x8f5e4bc27450bbe6e6f846d4b8742acf345380d7']
+  },
+  /* ---------- 新增池子 (本次需求) ---------- */
+  "USD1-BULLA":{
+    tokens:[
+      {symbol:'USD1',address:'0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d',logo:'./usd1.png',color:'#4caf50',decimals:null},
+      {symbol:'BULLA',address:'0x595e21b20e78674f8a64c1566a20b2b316bc3511',logo:'./bulla.png',color:'#673ab7',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x48bc32f212d539b23e1459e57dc27724aea6677a']
   }
 };
 
@@ -232,7 +250,6 @@ Object.keys(POOLS).forEach(name=>{
   const o=document.createElement('option');o.value=name;o.textContent=name;poolSelect.appendChild(o);
 });
 const allOpt=document.createElement('option');allOpt.value='__ALL__';allOpt.textContent='全部池子';poolSelect.appendChild(allOpt);
-
 let currentPoolName=Object.keys(POOLS)[0];poolSelect.value=currentPoolName;
 
 /* -------- Provider & Multicall -------- */
@@ -255,8 +272,9 @@ const setCached=(k,v)=>{cache[k]=v;localStorage.setItem(LS+k,JSON.stringify({v,t
 
 /* -------- 价格 -------- */
 const STABLE_PRICE={
-  '0x55d398326f99059ff775485246999027b3197955':1,
-  '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1
+  '0x55d398326f99059ff775485246999027b3197955':1, // USDT
+  '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d':1, // USDC
+  '0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d':1  // USD1
 };
 
 /* ★ 允许 WBNB 作为报价币 */
@@ -275,7 +293,6 @@ async function fetchJSON(u,t=CFG.TIMEOUT,r=CFG.RETRY){
     }
   }
 }
-
 async function getPrice(addr){
   const a=addr.toLowerCase();
   if(a in STABLE_PRICE){setCached(a,1);return 1;}
@@ -293,10 +310,7 @@ async function getPrice(addr){
       request(`https://api.dexscreener.com/latest/dex/search/?q=${a}`)
     ]);
     setCached(a,price);return price;
-  }catch{
-    /* 软降级：无法取价返回 0 */
-    setCached(a,0);return 0;
-  }
+  }catch{setCached(a,0);return 0;}
 }
 
 /* -------- decimals & balance -------- */
@@ -345,13 +359,13 @@ function setRecommend(totalUsd,minRatio){
   if(totalUsd===0) return {txt:'❓ 未定价',color:'#f59e0b'};
   let txt='',c='';
   if(minRatio<5){txt='⚠️ 谨慎';c='#f59e0b';}
-  else if(totalUsd<1_500_000){txt='🚫 不推荐';c:'#e11d48';}
+  else if(totalUsd<1_500_000){txt='🚫 不推荐';c='#e11d48';}
   else if(totalUsd<3_000_000){txt='⚠️ 谨慎';c='#f59e0b';}
-  else{txt='✅ 推荐刷';c:'#10b981';}
+  else{txt='✅ 推荐刷';c='#10b981';}
   return {txt,color:c};
 }
 
-/* -------- 渲染行（全量 or 局部更新） -------- */
+/* -------- 渲染行 -------- */
 function updateRows(tokens,humans,usds,isAuto){
   const total=usds.reduce((a,b)=>a+b,0);
   if(!isAuto || rowsBox.childElementCount!==tokens.length){
@@ -425,7 +439,7 @@ function renderAllView(poolDataList,isAuto){
   }
 }
 
-/* -------- Refresh (支持 isAuto) -------- */
+/* -------- Refresh -------- */
 async function refresh(isAuto=false){
   if(loading) return;loading=true;refreshId++;
   const myId=refreshId;
@@ -480,12 +494,12 @@ async function refresh(isAuto=false){
   }
 }
 
-/* -------- 传送门按钮：全部池子视图隐藏，其余池子自动生成 -------- */
+/* -------- 传送门按钮 -------- */
 function clearPortalButtons(){document.querySelectorAll('.debank-btn').forEach(el=>el.remove());}
 function updatePortalLinks(){
   clearPortalButtons();
-  if(currentPoolName==='__ALL__') return;                         // 全部池子视图不显示
-  const addr=POOLS[currentPoolName].addresses[0];                 // 取首个 LP 地址
+  if(currentPoolName==='__ALL__') return;
+  const addr=POOLS[currentPoolName].addresses[0];
   const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
   btn.href=`https://debank.com/profile/${addr}`;
   btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
