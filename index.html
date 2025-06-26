@@ -117,6 +117,7 @@ let loading=false,refreshId=0;
 
 /* -------- 池子配置 -------- */
 const POOLS={
+  /* ---------- 1. USDT-KOGE ---------- */
   "USDT-KOGE":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -125,6 +126,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xcf59b8c8baa2dea520e3d549f97d4e49ade17057']
   },
+  /* ---------- 2. USDT-TAIKO ---------- */
   "USDT-TAIKO":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -133,6 +135,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xbe77ac86750fb0359fa623e63e7f009979bb701c']
   },
+  /* ---------- 3. USDT-ZKJ ---------- */
   "USDT-ZKJ":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -141,6 +144,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x5968feacba91d55010975e0cfe8acfc32664ad33']
   },
+  /* ---------- 4. USDT-AB ---------- */
   "USDT-AB":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -149,6 +153,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xd7af60112d7dfe0f914724e3407dd54424aaa19b']
   },
+  /* ---------- 5. BNB-AB ---------- */
   "BNB-AB":{
     tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
@@ -157,6 +162,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xb05500ea96db17d28cd0eb30bcb797708f279d36']
   },
+  /* ---------- 6. USDT-SERAPH ---------- */
   "USDT-SERAPH":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -165,6 +171,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xd5b642646a6e40090d5d61ca11a78ee2f6e0ef14']
   },
+  /* ---------- 7. BNB-MYX ---------- */
   "BNB-MYX":{
     tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
@@ -173,6 +180,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x6ec31af1bb9a72aacec12e4ded508861b05f4503']
   },
+  /* ---------- 8. USDT-BR ---------- */
   "USDT-BR":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -181,6 +189,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x380aadf63d84d3a434073f1d5d95f02fb23d5228']
   },
+  /* ---------- 9. USDT-OL ---------- */
   "USDT-OL":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -189,6 +198,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xe65ea0ec747f2a3cc7999b92f81231db48f6ab1f']
   },
+  /* ---------- 10. USDT-ROAM ---------- */
   "USDT-ROAM":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -197,6 +207,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x30d59a44930b3994c116846efe55fc8fcf608aa8']
   },
+  /* ---------- 11. USDC-VELO ---------- */
   "USDC-VELO":{
     tokens:[
       {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
@@ -205,7 +216,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x258474cd00b4f42842ed424e6c2c1da0087031b8']
   },
-  /* ---------- 新增池子 (先前已加) ---------- */
+  /* ---------- 12. BNB-PUNDIAI ---------- */
   "BNB-PUNDIAI":{
     tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
@@ -214,6 +225,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x0bc2a40a6f2b1b2020e11d946fc6892c6b34691a']
   },
+  /* ---------- 13. USDC-F ---------- */
   "USDC-F":{
     tokens:[
       {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
@@ -222,7 +234,7 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x8f5e4bc27450bbe6e6f846d4b8742acf345380d7']
   },
-  /* ---------- 新增池子 (本次需求) ---------- */
+  /* ---------- 14. USD1-BULLA ---------- */
   "USD1-BULLA":{
     tokens:[
       {symbol:'USD1',address:'0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d',logo:'./usd1.png',color:'#4caf50',decimals:null},
@@ -230,6 +242,15 @@ const POOLS={
     ],
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x48bc32f212d539b23e1459e57dc27724aea6677a']
+  },
+  /* ---------- 15. 新增：USDT-AICell ---------- */
+  "USDT-AICell":{
+    tokens:[
+      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
+      {symbol:'AICell',address:'0xde04da55b74435d7b9f2c5c62d9f1b53929b09aa',logo:'./aicell.png',color:'#673ab7',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x430d8186bf67067c9d9eba8899983dd1176a02d9']
   }
 };
 
@@ -507,9 +528,7 @@ function updatePortalLinks(){
 }
 
 /* -------- 事件绑定 -------- */
-poolSelect.onchange=()=>{
-  currentPoolName=poolSelect.value;initProvider();updatePortalLinks();refresh(false);
-};
+poolSelect.onchange=()=>{currentPoolName=poolSelect.value;initProvider();updatePortalLinks();refresh(false);};
 let manualTimer=0;refreshBtn.onclick=()=>{clearTimeout(manualTimer);manualTimer=setTimeout(()=>refresh(false),300);};
 let autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL);
 autoCb.onchange=()=>{autoCb.checked?autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL):clearInterval(autoTimer);};
