@@ -2,8 +2,8 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8" />
-<title>流动性池子实时数据</title>
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>流动性池子实时数据</title>
 <link rel="icon" href="mus2s-cn38c-001.ico" type="image/x-icon" />
 
 <!-- ========= 样式 ========= -->
@@ -25,8 +25,8 @@ body{
   transition:background .3s,color .3s;
 }
 
-/* === 顶栏自适应 === */
-.topbar{width:100%;max-width:680px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-start;}
+/* === 顶栏 === */
+.topbar{width:100%;max-width:720px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-start;}
 @media (min-width:560px){.topbar{justify-content:space-between}}
 .title{font-size:24px;font-weight:700;color:var(--c-primary);display:flex;align-items:center;gap:6px}
 #spinner{display:none}.spin{display:block;animation:rotate 1s linear infinite}
@@ -36,14 +36,14 @@ body{
 .switch input{accent-color:var(--c-primary);cursor:pointer}
 select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;cursor:pointer}
 .btn{
-  display:inline-flex;align-items:center;gap:6px;padding:10px 20px;font-size:15px;
-  background:var(--c-primary);color:#fff;border:none;border-radius:8px;
-  text-decoration:none;cursor:pointer;transition:.18s background;
+  display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:15px;
+  background:var(--c-primary);color:#fff;border:none;border-radius:8px;text-decoration:none;
+  cursor:pointer;transition:background .18s;
 }
 .btn:hover{background:var(--c-primary-dark)} .btn:disabled{opacity:.6;cursor:not-allowed}
 .btn-icon{width:16px;height:16px;vertical-align:middle}
 
-.cards{width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px}
+.cards{width:100%;max-width:720px;display:flex;flex-direction:column;gap:12px}
 .row{
   display:flex;align-items:center;justify-content:space-between;gap:18px;
   background:var(--c-card);padding:14px 20px 14px 16px;border-radius:10px;
@@ -55,6 +55,11 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
 .label{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;white-space:nowrap}
 .token-icon,.icon-fallback{width:32px;height:32px;border-radius:50%;object-fit:cover}
 .icon-fallback{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+
+/* === 星标 === */
+.star{cursor:pointer;font-size:20px;user-select:none;margin-right:4px}
+.star.inactive{color:#d1d5db}
+.star.active{color:#f59e0b}
 
 .value{text-align:right;min-width:160px}
 .amount-label,.price-label,.ratio-label{display:block;font-size:12px;font-weight:600;color:var(--c-sub)}
@@ -77,13 +82,14 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
   <div class="title">
     流动性池子实时数据
     <svg id="spinner" width="16" height="16" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
-              fill="none" stroke-linecap="round"
-              stroke-dasharray="60" stroke-dashoffset="48"></circle>
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+              stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="48"/>
     </svg>
   </div>
+
   <div class="controls" id="portalWrap">
     <select id="poolSelect"></select>
+    <button id="favBtn" class="btn" title="收藏 / 取消收藏">☆</button>
     <label class="switch"><input type="checkbox" id="autoCb" checked>自动刷新</label>
     <label class="switch"><input type="checkbox" id="darkModeToggle">深色模式</label>
     <a class="btn" href="https://x.com/0xXIAOc" target="_blank">🐦 作者推特</a>
@@ -108,17 +114,17 @@ select{padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;c
 <script>
 /* ========== 暗黑模式 ========== */
 const html=document.documentElement,darkToggle=document.getElementById('darkModeToggle');
-const saved=localStorage.getItem('darkMode');
+const savedDark=localStorage.getItem('darkMode');
 const applyDark=v=>{html.classList.toggle('dark',v);localStorage.setItem('darkMode',v?'1':'0');darkToggle.checked=v;};
-darkToggle.onchange=()=>applyDark(darkToggle.checked);applyDark(saved==='1');
+darkToggle.onchange=()=>applyDark(darkToggle.checked);applyDark(savedDark==='1');
 
-/* -------- 并发锁 + 防并发序号 -------- */
-let loading=false,refreshId=0;
+/* ========== 收藏池子 ========== */
+let favPools=JSON.parse(localStorage.getItem('favPools')||'[]');
+function saveFav(){localStorage.setItem('favPools',JSON.stringify(favPools));}
+function isFav(name){return favPools.includes(name);}
+const favBtn=document.getElementById('favBtn');
 
-/* -------- 取消信号控制 -------- */
-let abortCtrl=null;          // 当前批次控制器
-
-/* -------- 池子配置 -------- */
+/* -------- 池子配置（★自行修改） -------- */
 const POOLS={
   "USDT-KOGE":{
     tokens:[
@@ -210,6 +216,10 @@ const POOLS={
   }
 };
 
+
+/* -------- 根据是否有收藏决定默认池 -------- */
+let currentPoolName=favPools.length?favPools[0]:Object.keys(POOLS)[0];
+
 /* -------- DOM -------- */
 const poolSelect=document.getElementById('poolSelect'),
       rowsBox=document.getElementById('rows'),
@@ -222,15 +232,38 @@ const poolSelect=document.getElementById('poolSelect'),
       refreshBtn=document.getElementById('refreshBtn'),
       portalWrap=document.getElementById('portalWrap');
 
-/* 填充下拉列表 */
-Object.keys(POOLS).forEach(name=>{
-  const o=document.createElement('option');o.value=name;o.textContent=name;poolSelect.appendChild(o);
-});
-const allOpt=document.createElement('option');allOpt.value='__ALL__';allOpt.textContent='全部池子';poolSelect.appendChild(allOpt);
-let currentPoolName=Object.keys(POOLS)[0];poolSelect.value=currentPoolName;
+/* -------- Toast 提示（每次加载都弹） -------- */
+Toastify({text:'提示：点击 ⭐ 可以收藏池子并置顶显示',duration:5000,gravity:'top',
+          style:{background:'#10b981'}}).showToast();
+
+/* -------- 构建下拉列表 -------- */
+function refreshPoolSelect(){
+  poolSelect.innerHTML='';
+  const sorted=Object.keys(POOLS).sort((a,b)=>Number(isFav(b))-Number(isFav(a))||a.localeCompare(b));
+  sorted.forEach(name=>{
+    const opt=document.createElement('option');opt.value=name;
+    opt.textContent=(isFav(name)?'★ ':'☆ ')+name;poolSelect.appendChild(opt);
+  });
+  const allOpt=document.createElement('option');allOpt.value='__ALL__';allOpt.textContent='全部池子';
+  poolSelect.appendChild(allOpt);poolSelect.value=currentPoolName;
+}
+refreshPoolSelect();
+
+/* -------- 更新星按钮 -------- */
+function updateFavBtn(){favBtn.textContent=isFav(currentPoolName)?"★":"☆";favBtn.style.display=currentPoolName==='__ALL__'?'none':'';}
+updateFavBtn();
+
+/* -------- 切换收藏 -------- */
+function toggleFav(name){
+  if(name==='__ALL__') return;
+  if(isFav(name)) favPools=favPools.filter(x=>x!==name); else favPools.unshift(name);
+  saveFav();refreshPoolSelect();updateFavBtn();if(currentPoolName==='__ALL__') refresh(false);
+}
 
 /* -------- Provider & Multicall -------- */
-const providers={},MULTICALL_ABI=['function aggregate(tuple(address target,bytes callData)[]) view returns(uint256,bytes[])'],ERC20_ABI=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];let provider,multicall;
+const providers={},MULTICALL_ABI=['function aggregate(tuple(address target,bytes callData)[]) view returns(uint256,bytes[])'],
+      ERC20_ABI=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
+let provider,multicall;
 function initProvider(){
   const url=currentPoolName==='__ALL__'?POOLS[Object.keys(POOLS)[0]].rpc:POOLS[currentPoolName].rpc;
   provider=providers[url]??=new ethers.providers.JsonRpcProvider(url);
@@ -241,10 +274,7 @@ initProvider();
 /* -------- 缓存 / 工具 -------- */
 const CFG={TIMEOUT:8000,RETRY:1,INTERVAL:60000,PRICE_CACHE:30000};
 const cache={},LS='P_';
-const getCached=k=>{
-  if(cache[k]!=null) return cache[k];
-  try{const {v,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');
-      return Date.now()-ts<CFG.PRICE_CACHE?v:null;}catch{return null}};
+const getCached=k=>{if(cache[k]!=null)return cache[k];try{const {v,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');return Date.now()-ts<CFG.PRICE_CACHE?v:null;}catch{return null}};
 const setCached=(k,v)=>{cache[k]=v;localStorage.setItem(LS+k,JSON.stringify({v,ts:Date.now()}));};
 
 /* -------- 价格 -------- */
@@ -255,44 +285,21 @@ const STABLE_PRICE={
 };
 const QUOTE_OK=['USDT','USDC','BUSD','WBNB'];
 
-/* -------- fetchJSON：支持全局取消 -------- */
+/* -------- fetchJSON -------- */
 async function fetchJSON(u,t=CFG.TIMEOUT,r=CFG.RETRY){
   for(let i=0;i<=r;i++){
-    const reqCtrl=new AbortController();
-    const id=setTimeout(()=>reqCtrl.abort(),t);
+    const reqCtrl=new AbortController();const id=setTimeout(()=>reqCtrl.abort(),t);
     if(abortCtrl) abortCtrl.signal.addEventListener('abort',()=>reqCtrl.abort(),{once:true});
-    try{
-      const res=await fetch(u,{signal:reqCtrl.signal});
-      clearTimeout(id);
-      if(!res.ok) throw 0;
-      return res.json();
-    }catch(e){
-      clearTimeout(id);
-      if(e.name==='AbortError') throw e;
-      if(i===r) throw e;
-      await new Promise(s=>setTimeout(s,500));
-    }
+    try{const res=await fetch(u,{signal:reqCtrl.signal});clearTimeout(id);if(!res.ok) throw 0;return res.json();}
+    catch(e){clearTimeout(id);if(e.name==='AbortError') throw e;if(i===r) throw e;await new Promise(s=>setTimeout(s,500));}
   }
 }
-
 async function getPrice(addr){
-  const a=addr.toLowerCase();
-  if(a in STABLE_PRICE){setCached(a,1);return 1;}
+  const a=addr.toLowerCase();if(a in STABLE_PRICE){setCached(a,1);return 1;}
   const cached=getCached(a);if(cached!==null) return cached;
-
-  const request=uri=>fetchJSON(uri).then(j=>{
-    const p=(j.pairs||[]).find(x=>QUOTE_OK.includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
-    if(!p) throw 0;
-    return +p.priceUsd;
-  });
-
-  try{
-    const price=await Promise.any([
-      request(`https://api.dexscreener.com/latest/dex/tokens/${a}`),
-      request(`https://api.dexscreener.com/latest/dex/search/?q=${a}`)
-    ]);
-    setCached(a,price);return price;
-  }catch{setCached(a,0);return 0;}
+  const req=uri=>fetchJSON(uri).then(j=>{const p=(j.pairs||[]).find(x=>QUOTE_OK.includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);if(!p) throw 0;return +p.priceUsd;});
+  try{const price=await Promise.any([req(`https://api.dexscreener.com/latest/dex/tokens/${a}`),req(`https://api.dexscreener.com/latest/dex/search/?q=${a}`)]);setCached(a,price);return price;}
+  catch{setCached(a,0);return 0;}
 }
 
 /* -------- decimals & balance -------- */
@@ -319,12 +326,7 @@ function skeleton(tokens){
   tokens.forEach(t=>{
     const d=document.createElement('div');d.className='row';d.style.setProperty('--stripe',t.color||'#ccc');
     d.innerHTML=`
-      <div class="label">
-        <div style="display:flex;gap:4px">
-          <img class="token-icon" src="${t.logo||''}" referrerpolicy="no-referrer"
-               onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
-        </div>${t.symbol||''}
-      </div>
+      <div class="label">${t.symbol}</div>
       <div class="value">
         <span class="amount-label">数量</span><div class="skeleton" style="width:120px;height:20px"></div>
         <span class="price-label">价值</span><div class="skeleton" style="width:100px;height:18px"></div>
@@ -336,15 +338,13 @@ function skeleton(tokens){
 
 /* -------- Utils -------- */
 const fmtQty=n=>(n>=1?n.toLocaleString(undefined,{maximumFractionDigits:2}):n.toFixed(4));
-const fmtM  =n=>(n/1_000_000).toLocaleString(undefined,{maximumFractionDigits:1});
+const fmtM=n=>(n/1_000_000).toLocaleString(undefined,{maximumFractionDigits:1});
 function setRecommend(totalUsd,minRatio){
   if(totalUsd===0) return {txt:'❓ 未定价',color:'#f59e0b'};
-  let txt='',c='';
-  if(minRatio<5){txt='⚠️ 谨慎';c='#f59e0b';}
-  else if(totalUsd<1_500_000){txt='🚫 不推荐';c='#e11d48';}
-  else if(totalUsd<3_000_000){txt='⚠️ 谨慎';c='#f59e0b';}
-  else{txt='✅ 推荐刷';c:'#10b981';}
-  return {txt,color:c};
+  if(minRatio<5)               return {txt:'⚠️ 谨慎',color:'#f59e0b'};
+  if(totalUsd<1_500_000)       return {txt:'🚫 不推荐',color:'#e11d48'};
+  if(totalUsd<3_000_000)       return {txt:'⚠️ 谨慎',color:'#f59e0b'};
+  return {txt:'✅ 推荐刷',color:'#10b981'};
 }
 
 /* -------- 渲染行 -------- */
@@ -361,16 +361,12 @@ function updateRows(tokens,humans,usds,isAuto){
         <div class="label">
           <img class="token-icon" src="${t.logo}" referrerpolicy="no-referrer"
                onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')">
-          <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>
-          ${t.symbol}
+          <span class="icon-fallback" style="display:none;background:${t.color}">${t.symbol[0]}</span>${t.symbol}
         </div>
         <div class="value">
-          <span class="amount-label">数量</span>
-          <span class="value-num">${fmtQty(humans[i])}</span>
-          <span class="price-label">价值</span>
-          <span class="value-price">≈ $${usds[i].toLocaleString()}</span>
-          <span class="ratio-label">比例</span>
-          <span class="ratio-value">${ratio}%</span>
+          <span class="amount-label">数量</span><span class="value-num">${fmtQty(humans[i])}</span>
+          <span class="price-label">价值</span><span class="value-price">≈ $${usds[i].toLocaleString()}</span>
+          <span class="ratio-label">比例</span><span class="ratio-value">${ratio}%</span>
         </div>`;f.appendChild(row);
     });
     rowsBox.appendChild(f);
@@ -388,54 +384,45 @@ function updateRows(tokens,humans,usds,isAuto){
 
 /* ======= 渲染 ALL 视图 ======= */
 function renderAllView(poolDataList,isAuto){
-  poolDataList.sort((a,b)=>b.totalUsd-a.totalUsd);
+  poolDataList.sort((a,b)=>Number(isFav(b.name))-Number(isFav(a.name))||b.totalUsd-a.totalUsd);
   if(!isAuto){
     rowsBox.innerHTML='';
     const f=document.createDocumentFragment();
     poolDataList.forEach(p=>{
       const rec=setRecommend(p.totalUsd,p.minRatio);
-      const logoTwo=`
-        <img class="token-icon" src="${p.tokens[0].logo}" referrerpolicy="no-referrer"
-             onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">
-        <img class="token-icon" src="${p.tokens[1].logo}" referrerpolicy="no-referrer"
-             onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">`;
+      const starCls=isFav(p.name)?'active':'inactive';
       const row=document.createElement('div');row.className='row';row.style.setProperty('--stripe',p.tokens[0].color);
       row.innerHTML=`
         <div class="label">
-          <div style="display:flex;gap:4px">${logoTwo}</div>
-          ${p.name} <span style="margin-left:6px;color:${rec.color}">${rec.txt}</span>
+          <span class="star ${starCls}" data-pool="${p.name}">★</span>
+          <div style="display:flex;gap:4px">
+            <img class="token-icon" src="${p.tokens[0].logo}" referrerpolicy="no-referrer"
+                 onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">
+            <img class="token-icon" src="${p.tokens[1].logo}" referrerpolicy="no-referrer"
+                 onerror="this.style.display='none';this.nextElementSibling.classList.add('icon-fallback')}">
+          </div>${p.name}<span style="margin-left:6px;color:${rec.color}">${rec.txt}</span>
         </div>
-        <div class="value">
-          <span class="price-label">价值</span>
-          <span class="value-price">≈ $${fmtM(p.totalUsd)}M</span>
-        </div>`;f.appendChild(row);
+        <div class="value"><span class="price-label">价值</span><span class="value-price">≈ $${fmtM(p.totalUsd)} M</span></div>`;
+      f.appendChild(row);
     });
     rowsBox.appendChild(f);
   }else{
     poolDataList.forEach(p=>{
       const row=[...rowsBox.children].find(r=>r.querySelector('.label')?.textContent.includes(p.name));
-      if(row){
-        row.querySelector('.value-price').textContent='≈ $'+fmtM(p.totalUsd)+'M';
-      }
+      if(row) row.querySelector('.value-price').textContent='≈ $'+fmtM(p.totalUsd)+' M';
     });
   }
 }
 
-/* -------- Refresh -------- */
+/* -------- 并发 & 刷新 -------- */
+let loading=false,refreshId=0,abortCtrl=null;
 async function refresh(isAuto=false){
-  // 终止上一轮请求
-  if(abortCtrl) abortCtrl.abort();
-  abortCtrl=new AbortController();
-
-  if(loading) loading=false;
-  loading=true;refreshId++;
-  const myId=refreshId;
+  if(abortCtrl) abortCtrl.abort();abortCtrl=new AbortController();
+  loading=true;refreshId++;const myId=refreshId;
   if(!isAuto){
     spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';
-    if(currentPoolName!=='__ALL__') skeleton(POOLS[currentPoolName].tokens);
-    else skeleton([{symbol:'加载',logo:'',color:'#ccc'}]);
+    if(currentPoolName!=='__ALL__') skeleton(POOLS[currentPoolName].tokens); else skeleton([{symbol:'加载',logo:'',color:'#ccc'}]);
   }
-
   try{
     if(currentPoolName!=='__ALL__'){
       const pool=POOLS[currentPoolName];
@@ -443,16 +430,12 @@ async function refresh(isAuto=false){
       const prices=await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
       const bals=await getBalances(pool.tokens,pool.addresses);
       const humans=[],usds=[];
-      pool.tokens.forEach((t,i)=>{
-        const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
-        humans.push(h);usds.push(Math.round(h*prices[i]));
-      });
+      pool.tokens.forEach((t,i)=>{const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));humans.push(h);usds.push(Math.round(h*prices[i]));});
       if(myId!==refreshId) return;
       const totalUsd=updateRows(pool.tokens,humans,usds,isAuto);
       const minRatio=Math.min(...usds.map(u=>totalUsd?u/totalUsd*100:0));
       totalDom.textContent=`💰 总价值：$${totalUsd.toLocaleString()}`;
-      const rec=setRecommend(totalUsd,minRatio);
-      recommendDom.textContent=rec.txt;recommendDom.style.color=rec.color;
+      const rec=setRecommend(totalUsd,minRatio);recommendDom.textContent=rec.txt;recommendDom.style.color=rec.color;
       totalWrap.style.display='flex';
     }else{
       const poolData=[];
@@ -461,58 +444,40 @@ async function refresh(isAuto=false){
         await Promise.all(p.tokens.map(ensureDecimals));
         const prices=await Promise.all(p.tokens.map(t=>getPrice(t.address)));
         const bals=await getBalances(p.tokens,p.addresses);
-        const totalUsd=p.tokens.reduce((s,t,i)=>{
-          const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return s+h*prices[i];},0);
-        const perTokenUsd=p.tokens.map((t,i)=>{
-          const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return h*prices[i];});
+        const totalUsd=p.tokens.reduce((s,t,i)=>{const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return s+h*prices[i];},0);
+        const perTokenUsd=p.tokens.map((t,i)=>{const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return h*prices[i];});
         poolData.push({name,tokens:p.tokens,totalUsd:Math.round(totalUsd),minRatio:Math.min(...perTokenUsd.map(u=>totalUsd?u/totalUsd*100:0))});
       }
       if(myId!==refreshId) return;
-      renderAllView(poolData,isAuto);
-      totalWrap.style.display='none';
+      renderAllView(poolData,isAuto);totalWrap.style.display='none';
     }
     timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
   }catch(e){
-    if(e.name!=='AbortError'){
-      Toastify({text:'❌ 数据获取失败：'+(e.message||e),duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
-    }
+    if(e.name!=='AbortError') Toastify({text:'❌ 数据获取失败：'+(e.message||e),duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
   }finally{
     if(!isAuto){spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';}
     loading=false;
   }
 }
 
-/* -------- 传送门按钮 -------- */
+/* -------- 传送门 -------- */
 function clearPortalButtons(){document.querySelectorAll('.debank-btn').forEach(el=>el.remove());}
 function updatePortalLinks(){
-  clearPortalButtons();
-  if(currentPoolName==='__ALL__') return;
+  clearPortalButtons();if(currentPoolName==='__ALL__') return;
   const addr=POOLS[currentPoolName].addresses[0];
   const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
-  btn.href=`https://debank.com/profile/${addr}`;
-  btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
+  btn.href=`https://debank.com/profile/${addr}`;btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
   portalWrap.insertBefore(btn,portalWrap.lastElementChild);
 }
 
-/* -------- 事件绑定 -------- */
-poolSelect.onchange=()=>{
-  if(abortCtrl) abortCtrl.abort();
-  loading=false;
-  spinner.classList.remove('spin');
-  refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';
-
-  currentPoolName=poolSelect.value;
-  initProvider();
-  updatePortalLinks();
-  refresh(false);
-};
+/* -------- 绑定事件 -------- */
+poolSelect.onchange=()=>{currentPoolName=poolSelect.value;updateFavBtn();initProvider();updatePortalLinks();refresh(false);};
+favBtn.onclick=()=>toggleFav(currentPoolName);
+rowsBox.addEventListener('click',e=>{if(e.target.classList.contains('star')) toggleFav(e.target.dataset.pool);});
 let manualTimer=0;refreshBtn.onclick=()=>{clearTimeout(manualTimer);manualTimer=setTimeout(()=>refresh(false),300);};
 let autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL);
 autoCb.onchange=()=>{autoCb.checked?autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL):clearInterval(autoTimer);};
-document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){clearInterval(autoTimer);}
-  else if(autoCb.checked){refresh(true);autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL);}
-});
+document.addEventListener('visibilitychange',()=>{if(document.hidden) clearInterval(autoTimer);else if(autoCb.checked){refresh(true);autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL);}});
 
 /* -------- 初始化 -------- */
 updatePortalLinks();refresh(false);
