@@ -124,8 +124,19 @@ function saveFav(){localStorage.setItem('favPools',JSON.stringify(favPools));}
 function isFav(name){return favPools.includes(name);}
 const favBtn=document.getElementById('favBtn');
 
-/* -------- 池子配置（★自行修改） -------- */
+/* -------- 池子配置 -------- */
 const POOLS={
+  /* ▼▼▼ 新增 USDT-AVAIL ▼▼▼ */
+  "USDT-AVAIL":{
+    tokens:[
+      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
+      {symbol:'AVAIL',address:'0x39702843a6733932ec7ce0dde404e5a6dbd8c989',logo:'./avail.png',color:'#795548',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x5ed54fe795a56d71d1a4b0d716d111b846a4be03']
+  },
+
+  /* —— 以下保持原有 —— */
   "USDT-KOGE":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
