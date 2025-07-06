@@ -126,17 +126,7 @@ const favBtn=document.getElementById('favBtn');
 
 /* -------- 池子配置 -------- */
 const POOLS={
-  /* ▼▼▼ 新增 USDT-AVAIL ▼▼▼ */
-  "USDT-AVAIL":{
-    tokens:[
-      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
-      {symbol:'AVAIL',address:'0x39702843a6733932ec7ce0dde404e5a6dbd8c989',logo:'./avail.png',color:'#795548',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x5ed54fe795a56d71d1a4b0d716d111b846a4be03']
-  },
-
-  /* —— 以下保持原有 —— */
+  /* 保留原有池子 */
   "USDT-KOGE":{
     tokens:[
       {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
@@ -193,22 +183,34 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x380aadf63d84d3a434073f1d5d95f02fb23d5228']
   },
-  "USDT-ROAM":{
+
+  /* ===== 新增池子 ===== */
+  "BNB-REKT":{
     tokens:[
-      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
-      {symbol:'ROAM',address:'0x3fefe29da25bea166fb5f6ade7b5976d2b0e586b',logo:'./roam.png',color:'#e91e63',decimals:null}
+      {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
+      {symbol:'REKT',address:'0x20482b0b4d9d8f60d3ab432b92f4c4b901a0d10c',logo:'./rekt.png',color:'#ff5722',decimals:null}
     ],
     rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x30d59a44930b3994c116846efe55fc8fcf608aa8']
+    addresses:['0x6f3176a7b42d55af6451f7401fda3c5fd57a72b5']
   },
-  "USDC-VELO":{
+  "USDC-FUEL":{
     tokens:[
-      {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#2775CA',decimals:null},
-      {symbol:'VELO',address:'0xf486ad071f3bee968384d2e39e2d8af0fcf6fd46',logo:'./velo.png',color:'#673ab7',decimals:null}
+      {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#26a17b',decimals:null},
+      {symbol:'FUEL',address:'0x5c8daeabc57e9249606d3bd6d1e097ef492ea3c5',logo:'./fuel.png',color:'#9c27b0',decimals:null}
     ],
     rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x258474cd00b4f42842ed424e6c2c1da0087031b8']
+    addresses:['0x890e659a81d8ab0113238d0ece4b3f986d8c03a3']
   },
+  "BNB-BGSC":{
+    tokens:[
+      {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
+      {symbol:'BGSC',address:'0xa4b68d48d7bc6f04420e8077e6f74bdef809dea3',logo:'./bgsc.png',color:'#4caf50',decimals:null}
+    ],
+    rpc:'https://bsc-dataseed.binance.org/',
+    addresses:['0x8f0bd6b22a9000e550e5dc31313d128abe40fcbd']
+  },
+
+  /* 其余保留 */
   "USD1-BULLA":{
     tokens:[
       {symbol:'USD1',address:'0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d',logo:'./usd1.png',color:'#4caf50',decimals:null},
@@ -227,7 +229,6 @@ const POOLS={
   }
 };
 
-
 /* -------- 根据是否有收藏决定默认池 -------- */
 let currentPoolName=favPools.length?favPools[0]:Object.keys(POOLS)[0];
 
@@ -243,49 +244,76 @@ const poolSelect=document.getElementById('poolSelect'),
       refreshBtn=document.getElementById('refreshBtn'),
       portalWrap=document.getElementById('portalWrap');
 
-/* -------- Toast 提示（每次加载都弹） -------- */
+/* -------- Toast 提示 -------- */
 Toastify({text:'提示：点击 ⭐ 可以收藏池子并置顶显示',duration:5000,gravity:'top',
           style:{background:'#10b981'}}).showToast();
 
 /* -------- 构建下拉列表 -------- */
 function refreshPoolSelect(){
   poolSelect.innerHTML='';
-  const sorted=Object.keys(POOLS).sort((a,b)=>Number(isFav(b))-Number(isFav(a))||a.localeCompare(b));
+  const sorted=Object.keys(POOLS)
+        .sort((a,b)=>Number(isFav(b))-Number(isFav(a))||a.localeCompare(b));
   sorted.forEach(name=>{
-    const opt=document.createElement('option');opt.value=name;
-    opt.textContent=(isFav(name)?'★ ':'☆ ')+name;poolSelect.appendChild(opt);
+    const opt=document.createElement('option');
+    opt.value=name;
+    opt.textContent=(isFav(name)?'★ ':'☆ ')+name;
+    poolSelect.appendChild(opt);
   });
-  const allOpt=document.createElement('option');allOpt.value='__ALL__';allOpt.textContent='全部池子';
-  poolSelect.appendChild(allOpt);poolSelect.value=currentPoolName;
+  const allOpt=document.createElement('option');
+  allOpt.value='__ALL__';
+  allOpt.textContent='全部池子';
+  poolSelect.appendChild(allOpt);
+  poolSelect.value=currentPoolName;
 }
 refreshPoolSelect();
 
 /* -------- 更新星按钮 -------- */
-function updateFavBtn(){favBtn.textContent=isFav(currentPoolName)?"★":"☆";favBtn.style.display=currentPoolName==='__ALL__'?'none':'';}
+function updateFavBtn(){
+  favBtn.textContent=isFav(currentPoolName)?"★":"☆";
+  favBtn.style.display=currentPoolName==='__ALL__'?'none':'';
+}
 updateFavBtn();
 
 /* -------- 切换收藏 -------- */
 function toggleFav(name){
   if(name==='__ALL__') return;
-  if(isFav(name)) favPools=favPools.filter(x=>x!==name); else favPools.unshift(name);
-  saveFav();refreshPoolSelect();updateFavBtn();if(currentPoolName==='__ALL__') refresh(false);
+  if(isFav(name)) favPools=favPools.filter(x=>x!==name);
+  else favPools.unshift(name);
+  saveFav();
+  refreshPoolSelect();
+  updateFavBtn();
+  if(currentPoolName==='__ALL__') refresh(false);
 }
 
 /* -------- Provider & Multicall -------- */
-const providers={},MULTICALL_ABI=['function aggregate(tuple(address target,bytes callData)[]) view returns(uint256,bytes[])'],
-      ERC20_ABI=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
+const providers={},
+      MULTICALL_ABI=['function aggregate(tuple(address target,bytes callData)[]) view returns(uint256,bytes[])'],
+      ERC20_ABI=['function decimals() view returns(uint8)',
+                 'function balanceOf(address) view returns(uint256)'];
 let provider,multicall;
 function initProvider(){
-  const url=currentPoolName==='__ALL__'?POOLS[Object.keys(POOLS)[0]].rpc:POOLS[currentPoolName].rpc;
-  provider=providers[url]??=new ethers.providers.JsonRpcProvider(url);
-  multicall=new ethers.Contract('0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb',MULTICALL_ABI,provider);
+  const url=currentPoolName==='__ALL__'
+              ? POOLS[Object.keys(POOLS)[0]].rpc
+              : POOLS[currentPoolName].rpc;
+  provider=providers[url] ??= new ethers.providers.JsonRpcProvider(url);
+  multicall=new ethers.Contract(
+    '0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb',
+    MULTICALL_ABI,
+    provider
+  );
 }
 initProvider();
 
 /* -------- 缓存 / 工具 -------- */
 const CFG={TIMEOUT:8000,RETRY:1,INTERVAL:60000,PRICE_CACHE:30000};
 const cache={},LS='P_';
-const getCached=k=>{if(cache[k]!=null)return cache[k];try{const {v,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');return Date.now()-ts<CFG.PRICE_CACHE?v:null;}catch{return null}};
+const getCached=k=>{
+  if(cache[k]!=null) return cache[k];
+  try{
+    const {v,ts}=JSON.parse(localStorage.getItem(LS+k)||'{}');
+    return Date.now()-ts<CFG.PRICE_CACHE?v:null;
+  }catch{return null}
+};
 const setCached=(k,v)=>{cache[k]=v;localStorage.setItem(LS+k,JSON.stringify({v,ts:Date.now()}));};
 
 /* -------- 价格 -------- */
@@ -299,27 +327,54 @@ const QUOTE_OK=['USDT','USDC','BUSD','WBNB'];
 /* -------- fetchJSON -------- */
 async function fetchJSON(u,t=CFG.TIMEOUT,r=CFG.RETRY){
   for(let i=0;i<=r;i++){
-    const reqCtrl=new AbortController();const id=setTimeout(()=>reqCtrl.abort(),t);
+    const reqCtrl=new AbortController();
+    const id=setTimeout(()=>reqCtrl.abort(),t);
     if(abortCtrl) abortCtrl.signal.addEventListener('abort',()=>reqCtrl.abort(),{once:true});
-    try{const res=await fetch(u,{signal:reqCtrl.signal});clearTimeout(id);if(!res.ok) throw 0;return res.json();}
-    catch(e){clearTimeout(id);if(e.name==='AbortError') throw e;if(i===r) throw e;await new Promise(s=>setTimeout(s,500));}
+    try{
+      const res=await fetch(u,{signal:reqCtrl.signal});
+      clearTimeout(id);
+      if(!res.ok) throw 0;
+      return res.json();
+    }catch(e){
+      clearTimeout(id);
+      if(e.name==='AbortError') throw e;
+      if(i===r) throw e;
+      await new Promise(s=>setTimeout(s,500));
+    }
   }
 }
 async function getPrice(addr){
-  const a=addr.toLowerCase();if(a in STABLE_PRICE){setCached(a,1);return 1;}
-  const cached=getCached(a);if(cached!==null) return cached;
-  const req=uri=>fetchJSON(uri).then(j=>{const p=(j.pairs||[]).find(x=>QUOTE_OK.includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);if(!p) throw 0;return +p.priceUsd;});
-  try{const price=await Promise.any([req(`https://api.dexscreener.com/latest/dex/tokens/${a}`),req(`https://api.dexscreener.com/latest/dex/search/?q=${a}`)]);setCached(a,price);return price;}
-  catch{setCached(a,0);return 0;}
+  const a=addr.toLowerCase();
+  if(a in STABLE_PRICE){ setCached(a,1); return 1; }
+  const cached=getCached(a); if(cached!==null) return cached;
+
+  const req=uri=>fetchJSON(uri).then(j=>{
+    const p=(j.pairs||[]).find(x=>QUOTE_OK.includes(x.quoteToken.symbol)&&x.liquidity.usd>5000);
+    if(!p) throw 0;
+    return +p.priceUsd;
+  });
+  try{
+    const price=await Promise.any([
+      req(`https://api.dexscreener.com/latest/dex/tokens/${a}`),
+      req(`https://api.dexscreener.com/latest/dex/search/?q=${a}`)
+    ]);
+    setCached(a,price);
+    return price;
+  }catch{
+    setCached(a,0);
+    return 0;
+  }
 }
 
 /* -------- decimals & balance -------- */
 async function ensureDecimals(t){
   if(t.decimals!=null) return;
-  const k='dec_'+t.address.toLowerCase();let d=getCached(k);
-  if(d!=null){t.decimals=d;return;}
-  try{d=await new ethers.Contract(t.address,ERC20_ABI,provider).decimals();}catch{d=18;}
-  t.decimals=d;setCached(k,d);
+  const k='dec_'+t.address.toLowerCase();
+  let d=getCached(k);
+  if(d!=null){ t.decimals=d; return; }
+  try{ d=await new ethers.Contract(t.address,ERC20_ABI,provider).decimals(); }
+  catch{ d=18; }
+  t.decimals=d; setCached(k,d);
 }
 const iface=new ethers.utils.Interface(ERC20_ABI);
 async function getBalances(tokens,addrs){
@@ -342,7 +397,8 @@ function skeleton(tokens){
         <span class="amount-label">数量</span><div class="skeleton" style="width:120px;height:20px"></div>
         <span class="price-label">价值</span><div class="skeleton" style="width:100px;height:18px"></div>
         <span class="ratio-label">比例</span><div class="skeleton" style="width:60px;height:16px"></div>
-      </div>`;f.appendChild(d);
+      </div>`;
+    f.appendChild(d);
   });
   rowsBox.appendChild(f);totalDom.textContent='💰';recommendDom.textContent='';timeDom.textContent='';
 }
@@ -432,7 +488,8 @@ async function refresh(isAuto=false){
   loading=true;refreshId++;const myId=refreshId;
   if(!isAuto){
     spinner.classList.add('spin');refreshBtn.disabled=true;refreshBtn.textContent='刷新中…';
-    if(currentPoolName!=='__ALL__') skeleton(POOLS[currentPoolName].tokens); else skeleton([{symbol:'加载',logo:'',color:'#ccc'}]);
+    if(currentPoolName!=='__ALL__') skeleton(POOLS[currentPoolName].tokens);
+    else skeleton([{symbol:'加载',logo:'',color:'#ccc'}]);
   }
   try{
     if(currentPoolName!=='__ALL__'){
@@ -441,12 +498,16 @@ async function refresh(isAuto=false){
       const prices=await Promise.all(pool.tokens.map(t=>getPrice(t.address)));
       const bals=await getBalances(pool.tokens,pool.addresses);
       const humans=[],usds=[];
-      pool.tokens.forEach((t,i)=>{const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));humans.push(h);usds.push(Math.round(h*prices[i]));});
+      pool.tokens.forEach((t,i)=>{
+        const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
+        humans.push(h);usds.push(Math.round(h*prices[i]));
+      });
       if(myId!==refreshId) return;
       const totalUsd=updateRows(pool.tokens,humans,usds,isAuto);
       const minRatio=Math.min(...usds.map(u=>totalUsd?u/totalUsd*100:0));
       totalDom.textContent=`💰 总价值：$${totalUsd.toLocaleString()}`;
-      const rec=setRecommend(totalUsd,minRatio);recommendDom.textContent=rec.txt;recommendDom.style.color=rec.color;
+      const rec=setRecommend(totalUsd,minRatio);
+      recommendDom.textContent=rec.txt;recommendDom.style.color=rec.color;
       totalWrap.style.display='flex';
     }else{
       const poolData=[];
@@ -455,18 +516,34 @@ async function refresh(isAuto=false){
         await Promise.all(p.tokens.map(ensureDecimals));
         const prices=await Promise.all(p.tokens.map(t=>getPrice(t.address)));
         const bals=await getBalances(p.tokens,p.addresses);
-        const totalUsd=p.tokens.reduce((s,t,i)=>{const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return s+h*prices[i];},0);
-        const perTokenUsd=p.tokens.map((t,i)=>{const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));return h*prices[i];});
-        poolData.push({name,tokens:p.tokens,totalUsd:Math.round(totalUsd),minRatio:Math.min(...perTokenUsd.map(u=>totalUsd?u/totalUsd*100:0))});
+        const totalUsd=p.tokens.reduce((s,t,i)=>{
+          const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
+          return s+h*prices[i];
+        },0);
+        const perTokenUsd=p.tokens.map((t,i)=>{
+          const h=parseFloat(ethers.utils.formatUnits(bals[i],t.decimals));
+          return h*prices[i];
+        });
+        poolData.push({
+          name,
+          tokens:p.tokens,
+          totalUsd:Math.round(totalUsd),
+          minRatio:Math.min(...perTokenUsd.map(u=>totalUsd?u/totalUsd*100:0))
+        });
       }
       if(myId!==refreshId) return;
       renderAllView(poolData,isAuto);totalWrap.style.display='none';
     }
     timeDom.textContent='上次更新：'+new Date().toLocaleTimeString();
   }catch(e){
-    if(e.name!=='AbortError') Toastify({text:'❌ 数据获取失败：'+(e.message||e),duration:3500,gravity:'top',close:true,style:{background:'#e11d48'}}).showToast();
+    if(e.name!=='AbortError')
+      Toastify({text:'❌ 数据获取失败：'+(e.message||e),duration:3500,gravity:'top',close:true,
+                style:{background:'#e11d48'}}).showToast();
   }finally{
-    if(!isAuto){spinner.classList.remove('spin');refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';}
+    if(!isAuto){
+      spinner.classList.remove('spin');
+      refreshBtn.disabled=false;refreshBtn.textContent='⟳ 刷新余额';
+    }
     loading=false;
   }
 }
@@ -477,21 +554,45 @@ function updatePortalLinks(){
   clearPortalButtons();if(currentPoolName==='__ALL__') return;
   const addr=POOLS[currentPoolName].addresses[0];
   const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
-  btn.href=`https://debank.com/profile/${addr}`;btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
+  btn.href=`https://debank.com/profile/${addr}`;
+  btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
   portalWrap.insertBefore(btn,portalWrap.lastElementChild);
 }
 
 /* -------- 绑定事件 -------- */
-poolSelect.onchange=()=>{currentPoolName=poolSelect.value;updateFavBtn();initProvider();updatePortalLinks();refresh(false);};
+poolSelect.onchange=()=>{
+  currentPoolName=poolSelect.value;
+  updateFavBtn();
+  initProvider();
+  updatePortalLinks();
+  refresh(false);
+};
 favBtn.onclick=()=>toggleFav(currentPoolName);
-rowsBox.addEventListener('click',e=>{if(e.target.classList.contains('star')) toggleFav(e.target.dataset.pool);});
-let manualTimer=0;refreshBtn.onclick=()=>{clearTimeout(manualTimer);manualTimer=setTimeout(()=>refresh(false),300);};
+rowsBox.addEventListener('click',e=>{
+  if(e.target.classList.contains('star')) toggleFav(e.target.dataset.pool);
+});
+let manualTimer=0;
+refreshBtn.onclick=()=>{
+  clearTimeout(manualTimer);
+  manualTimer=setTimeout(()=>refresh(false),300);
+};
 let autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL);
-autoCb.onchange=()=>{autoCb.checked?autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL):clearInterval(autoTimer);};
-document.addEventListener('visibilitychange',()=>{if(document.hidden) clearInterval(autoTimer);else if(autoCb.checked){refresh(true);autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL);}});
+autoCb.onchange=()=>{
+  autoCb.checked
+    ? autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL)
+    : clearInterval(autoTimer);
+};
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden) clearInterval(autoTimer);
+  else if(autoCb.checked){
+    refresh(true);
+    autoTimer=setInterval(()=>refresh(true),CFG.INTERVAL);
+  }
+});
 
 /* -------- 初始化 -------- */
-updatePortalLinks();refresh(false);
+updatePortalLinks();
+refresh(false);
 </script>
 </body>
 </html>
