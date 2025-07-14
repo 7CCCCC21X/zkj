@@ -138,7 +138,7 @@ function saveFav(){localStorage.setItem('favPools',JSON.stringify(favPools));}
 function isFav(name){return favPools.includes(name);}
 const favBtn=document.getElementById('favBtn');
 
-/* -------- 池子配置（完整） -------- */
+/* -------- 池子配置（更新后） -------- */
 const POOLS={
   "USDT-KOGE":{
     tokens:[
@@ -147,14 +147,6 @@ const POOLS={
     ],
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0xcf59b8c8baa2dea520e3d549f97d4e49ade17057']
-  },
-  "USDT-TAIKO":{
-    tokens:[
-      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
-      {symbol:'TAIKO',address:'0x30c60b20c25b2810ca524810467a0c342294fc61',logo:'./taiko.png',color:'#8e44ad',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0xbe77ac86750fb0359fa623e63e7f009979bb701c']
   },
   "USDT-ZKJ":{
     tokens:[
@@ -180,14 +172,6 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x9485Ff32b6b4444C21D5abe4D9a2283d127075a2']
   },
-  "BNB-AB":{
-    tokens:[
-      {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
-      {symbol:'AB',address:'0x95034f653d5d161890836ad2b6b8cc49d14e029a',logo:'./ab.png',color:'#ffb700',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0xb05500ea96db17d28cd0eb30bcb797708f279d36']
-  },
   "BNB-MYX":{
     tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
@@ -204,22 +188,6 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x380aadf63d84d3a434073f1d5d95f02fb23d5228']
   },
-  "BNB-REKT":{
-    tokens:[
-      {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
-      {symbol:'REKT',address:'0x20482b0b4d9d8f60d3ab432b92f4c4b901a0d10c',logo:'./rekt.png',color:'#ff5722',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x6f3176a7b42d55af6451f7401fda3c5fd57a72b5']
-  },
-  "USDC-FUEL":{
-    tokens:[
-      {symbol:'USDC',address:'0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',logo:'./usdc.png',color:'#26a17b',decimals:null},
-      {symbol:'FUEL',address:'0x5c8daeabc57e9249606d3bd6d1e097ef492ea3c5',logo:'./fuel.png',color:'#9c27b0',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x890e659a81d8ab0113238d0ece4b3f986d8c03a3']
-  },
   "BNB-BGSC":{
     tokens:[
       {symbol:'BNB',address:'0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',logo:'./bnb.png',color:'#f0b90b',decimals:null},
@@ -228,21 +196,16 @@ const POOLS={
     rpc:'https://bsc-dataseed.binance.org/',
     addresses:['0x8f0bd6b22a9000e550e5dc31313d128abe40fcbd']
   },
-  "USD1-BULLA":{
+  "USDT-OIK":{
     tokens:[
-      {symbol:'USD1',address:'0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d',logo:'./usd1.png',color:'#4caf50',decimals:null},
-      {symbol:'BULLA',address:'0x595e21b20e78674f8a64c1566a20b2b316bc3511',logo:'./bulla.png',color:'#673ab7',decimals:null}
+      {symbol:'USDT',address:'0x55d398326f99059ff775485246999027b3197955',logo:'./usdt.png',color:'#26a17b',decimals:null},
+      {symbol:'OIK',address:'0xb035723d62e0e2ea7499d76355c9d560f13ba404',logo:'./oik.png',color:'#ff5722',decimals:null}
     ],
     rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x48bc32f212d539b23e1459e57dc27724aea6677a']
-  },
-  "USD1-CARV":{
-    tokens:[
-      {symbol:'USD1',address:'0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d',logo:'./usd1.png',color:'#2775CA',decimals:null},
-      {symbol:'CARV',address:'0xc08cd26474722ce93f4d0c34d16201461c10aa8c',logo:'./carv.png',color:'#ff9800',decimals:null}
-    ],
-    rpc:'https://bsc-dataseed.binance.org/',
-    addresses:['0x6045479ab46dF901E7c86977ED22DDeB80728165']
+    addresses:[
+      '0x7840fafdea1292068c1167f5da035a54bd31fae5',
+      '0x985c205bb3a294c4778a9318aecc42b9c07b0b1d'
+    ]
   }
 };
 
@@ -287,8 +250,7 @@ refreshPoolSelect();
 /* -------- 更新星按钮 -------- */
 function updateFavBtn(){
   favBtn.textContent=isFav(currentPoolName)?"★":"☆";
-  favBtn.style.display=currentPoolName==='__ALL__'?'none':'';
-}
+  favBtn.style.display=currentPoolName==='__ALL__'?'none':'';}
 updateFavBtn();
 
 /* -------- 切换收藏 -------- */
@@ -303,21 +265,12 @@ function toggleFav(name){
 }
 
 /* -------- Provider & Multicall -------- */
-const providers={},
-      MULTICALL_ABI=['function aggregate(tuple(address target,bytes callData)[]) view returns(uint256,bytes[])'],
-      ERC20_ABI=['function decimals() view returns(uint8)',
-                 'function balanceOf(address) view returns(uint256)'];
+const providers={},MULTICALL_ABI=['function aggregate(tuple(address target,bytes callData)[]) view returns(uint256,bytes[])'],ERC20_ABI=['function decimals() view returns(uint8)','function balanceOf(address) view returns(uint256)'];
 let provider,multicall;
 function initProvider(){
-  const url=currentPoolName==='__ALL__'
-              ? POOLS[Object.keys(POOLS)[0]].rpc
-              : POOLS[currentPoolName].rpc;
+  const url=currentPoolName==='__ALL__'?POOLS[Object.keys(POOLS)[0]].rpc:POOLS[currentPoolName].rpc;
   provider=providers[url] ??= new ethers.providers.JsonRpcProvider(url);
-  multicall=new ethers.Contract(
-    '0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb',
-    MULTICALL_ABI,
-    provider
-  );
+  multicall=new ethers.Contract('0x1Ee38d535d541c55C9dae27B12edf090C608E6Fb',MULTICALL_ABI,provider);
 }
 initProvider();
 
@@ -456,7 +409,6 @@ function updateRows(tokens,humans,usds,isAuto){
     rowsBox.appendChild(f);
   }else{
     tokens.forEach((t,i)=>{
-      /* 修复行选择器 */
       const row=rowsBox.querySelector('.row[data-symbol="'+t.symbol+'"]');
       if(!row) return;
       row.querySelector('.value-num').textContent=fmtQty(humans[i]);
@@ -566,15 +518,17 @@ async function refresh(isAuto=false){
   }
 }
 
-/* -------- 传送门 -------- */
+/* -------- 传送门（多地址支持） -------- */
 function clearPortalButtons(){document.querySelectorAll('.debank-btn').forEach(el=>el.remove());}
 function updatePortalLinks(){
   clearPortalButtons();if(currentPoolName==='__ALL__') return;
-  const addr=POOLS[currentPoolName].addresses[0];
-  const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
-  btn.href=`https://debank.com/profile/${addr}`;
-  btn.innerHTML='<img src="./pancake.png" class="btn-icon">池子余额传送门';
-  portalWrap.insertBefore(btn,portalWrap.lastElementChild);
+  const addrs=POOLS[currentPoolName].addresses;
+  addrs.forEach((addr,i)=>{
+    const btn=document.createElement('a');btn.className='btn debank-btn';btn.target='_blank';
+    btn.href=`https://debank.com/profile/${addr}`;
+    btn.innerHTML=`<img src="./pancake.png" class="btn-icon">池子余额传送门 ${addrs.length>1?i+1:''}`;
+    portalWrap.insertBefore(btn,portalWrap.lastElementChild);
+  });
 }
 
 /* -------- 绑定事件 -------- */
